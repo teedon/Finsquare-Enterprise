@@ -34,7 +34,7 @@ export const ORGANIZATION_ACCOUNT_RECIPIENT: ContributionRecipient = {
 }
 
 const today = () => toISODate(new Date())
-const daysAgo = (days: number) => toISODate(addDays(new Date(), -days))
+const daysAgoFrom = (anchor: Date, days: number) => toISODate(addDays(anchor, -days))
 
 const noCommission: ContributionCommission = { model: "none" }
 const savingsCommission = (percentage: number): ContributionCommission => ({
@@ -156,7 +156,6 @@ const SEEDS: ContributionSeed[] = [
     commission: savingsCommission(7.5),
     payout: {
       mode: "scheduled",
-      scheduledDate: daysAgo(-14),
       scheduledInterval: "Monthly",
       approvalThreshold: 150_000,
     },
@@ -279,6 +278,9 @@ interface BuildOptions {
  */
 export function buildContributionDataset(options: BuildOptions = {}): ContributionDataset {
   const todayISO = options.today ?? today()
+  // All derived dates are anchored to the same reference day, so the same input always produces
+  // the same dataset regardless of the wall clock.
+  const daysAgo = (days: number) => daysAgoFrom(parseISODate(todayISO), days)
   const maxPeriods = options.maxPeriods ?? 160
   const contributions: Contribution[] = []
   const participants: ContributionParticipant[] = []
@@ -307,7 +309,10 @@ export function buildContributionDataset(options: BuildOptions = {}): Contributi
       groupName: seed.groupName,
       recipient: seed.recipient,
       commission: seed.commission,
-      payout: seed.payout,
+      payout:
+        seed.payout.mode === "scheduled"
+          ? { ...seed.payout, scheduledDate: daysAgo(-14) }
+          : seed.payout,
       paymentMethods: paymentMethodsFor(seed.methods),
       // Every plan mints a link: `Open` plans advertise the pool link, member plans use it for
       // each member's own link.

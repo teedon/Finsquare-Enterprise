@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useWorkspace } from "@/app/providers/WorkspaceProvider"
 import { useAuthorization } from "@/features/administrators/hooks/useAuthorization"
-import { memberWalletFor } from "@/features/wallet/domain/wallet.rules"
-import { walletServiceFor } from "@/features/wallet/services/wallet.service"
 import { moneyMovementMode } from "@/lib/permissions/capabilities"
-import { SEED_ORGANIZATION_ID } from "@/lib/tenancy/seed-tenant"
 import { toISODate } from "../domain/calculations"
 import {
   amountLabel,
@@ -118,19 +115,16 @@ export function useContributions(organizationId: string) {
  * name them, pay from their wallet, and record the money against their balance.
  */
 export function usePublicContribution(slug: string, memberId?: string) {
-  const [data, setData] = useState<ContributionDataset | null>(null)
   const [contribution, setContribution] = useState<Contribution | null>(null)
   const [participant, setParticipant] = useState<ContributionParticipant | null>(null)
   const [memberWallet, setMemberWallet] = useState<{ id: string; availableBalance: number } | null>(null)
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
-  /** The link belongs to the organisation that published it, not to whichever community is active. */
-  const PUBLIC_LINK_ORG_ID = SEED_ORGANIZATION_ID
 
   useEffect(() => {
     let active = true
     contributionsService
       .findPublicContribution(slug, memberId)
-      .then(async (found) => {
+      .then((found) => {
         if (!active) return
         if (!found) {
           setStatus("error")
@@ -138,15 +132,7 @@ export function usePublicContribution(slug: string, memberId?: string) {
         }
         setContribution(found.contribution)
         setParticipant(found.participant ?? null)
-        setData(found.dataset)
-        if (memberId) {
-          // The member's own wallet is the community's wallet, not whichever is active in the app.
-          const wallets = await walletServiceFor(PUBLIC_LINK_ORG_ID).load()
-          if (active) {
-            const wallet = memberWalletFor(wallets.wallets, memberId)
-            setMemberWallet(wallet ? { id: wallet.id, availableBalance: wallet.availableBalance } : null)
-          }
-        }
+        setMemberWallet(found.memberWallet ?? null)
         setStatus("success")
       })
       .catch(() => active && setStatus("error"))
@@ -155,5 +141,5 @@ export function usePublicContribution(slug: string, memberId?: string) {
     }
   }, [slug, memberId])
 
-  return { contribution, participant, memberWallet, data, status, service: contributionsService }
+  return { contribution, participant, memberWallet, status, service: contributionsService }
 }

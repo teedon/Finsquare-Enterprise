@@ -84,19 +84,17 @@ export const endpoints = {
     account: "/corporate-account",
   },
   contributions: {
-    list: (organizationId: string) =>
-      `/organizations/${organizationId}/contributions`,
-    detail: (organizationId: string, contributionId: string) =>
-      `/organizations/${organizationId}/contributions/${contributionId}`,
-    participants: (organizationId: string, contributionId: string) =>
-      `/organizations/${organizationId}/contributions/${contributionId}/participants`,
-    transactions: (organizationId: string, contributionId: string) =>
-      `/organizations/${organizationId}/contributions/${contributionId}/transactions`,
-    withdrawals: (organizationId: string, contributionId: string) =>
-      `/organizations/${organizationId}/contributions/${contributionId}/withdrawals`,
-    /** Transactional batch used by the mock-shaped repository; production should expose named commands. */
-    commands: (organizationId: string) =>
-      `/organizations/${organizationId}/contributions/commands`,
+    workspace: "/enterprise/contributions",
+    plans: "/enterprise/contributions/plans",
+    plan: (id: string) => `/enterprise/contributions/plans/${id}`,
+    planStatus: (id: string) => `/enterprise/contributions/plans/${id}/status`,
+    planCommission: (id: string) => `/enterprise/contributions/plans/${id}/commission`,
+    planPublicLink: (id: string) => `/enterprise/contributions/plans/${id}/public-link`,
+    payments: "/enterprise/contributions/payments",
+    withdrawals: "/enterprise/contributions/withdrawals",
+    approveWithdrawal: (id: string) => `/enterprise/contributions/withdrawals/${id}/approve`,
+    rejectWithdrawal: (id: string) => `/enterprise/contributions/withdrawals/${id}/reject`,
+    releasePayouts: "/enterprise/contributions/release-payouts",
     publicContribution: (slug: string) => `/public/contributions/${slug}`,
   },
   dues: {

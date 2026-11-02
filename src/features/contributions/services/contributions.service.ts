@@ -12,17 +12,22 @@ import {
   round2,
   toISODate,
 } from "../domain/calculations"
-import { commissionApplies, isPersonal, keepsRunningAfterPayout, nextExpectedAmount, paymentMethodsFor, publicLinkAvailable, requiresApproval, slugify } from "../domain/contribution.rules"
-import { SEED_ORGANIZATION_ID } from "@/lib/tenancy/seed-tenant"
+import { commissionApplies, isPersonal, keepsRunningAfterPayout, nextExpectedAmount, paymentMethodsFor, requiresApproval, slugify } from "../domain/contribution.rules"
 import { ApiContributionRepository } from "../repositories/api-contribution.repository"
 import { createMockContributionRepository } from "../repositories/mock-contribution.repository"
-import type { ContributionRepository } from "../repositories/contribution.repository"
+import type {
+  ContributionRepository,
+  ContributionSettlement,
+  ContributionWithdrawalPatch,
+  PublicContributionView,
+} from "../repositories/contribution.repository"
 import type {
   Contribution,
   ContributionCommission,
   ContributionDataset,
   ContributionParticipant,
   ContributionPeriod,
+  ContributionPublicLink,
   ContributionStatus,
   ContributionTransaction,
   ContributionWithdrawal,
@@ -55,15 +60,6 @@ let sequence = 0
 const nextId = (prefix: string) => `${prefix}-${Date.now().toString(36)}${(sequence += 1).toString(36)}`
 
 /**
- * The tenant the public contribution links belong to.
- *
- * A public link carries no session, so the tenant cannot come from the active community: it belongs
- * to the organisation that published the link. Resolving it from the slug is the backend's job, and
- * until then the links address the seeded organisation, which is where the published pools live.
- */
-const PUBLIC_LINK_ORG_ID = SEED_ORGANIZATION_ID
-
-/**
  * Contribution commands. Every method states what the real backend must enforce — balances,
  * commission, approval and audit are authoritative on the server, never here.
  */
@@ -72,16 +68,6 @@ export class ContributionService {
 
   load = (organizationId: string) => this.repo.load(organizationId)
   subscribe = (listener: () => void) => this.repo.subscribe(listener)
-
-  private async mutate(
-    organizationId: string,
-    update: (dataset: ContributionDataset) => Partial<ContributionDataset>,
-  ): Promise<ContributionDataset> {
-    const current = await this.repo.load(organizationId)
-    const next = { ...current, ...update(current) }
-    await this.repo.commit(organizationId, next)
-    return next
-  }
 
   /**
    * Creates a contribution plan. The backend must re-validate the type-specific amounts,
@@ -163,14 +149,12 @@ export class ContributionService {
       }
     }
 
-    await this.mutate(organizationId, (current) => ({
-      contributions: [contribution, ...current.contributions],
-      participants: [...roster, ...current.participants],
-      periods: [
-        ...generatePeriods(contribution, roster, [], toISODate(new Date())),
-        ...current.periods,
-      ],
-    }))
+    await this.repo.createPlan(
+      organizationId,
+      contribution,
+      roster,
+      generatePeriods(contribution, roster, [], toISODate(new Date())),
+    )
     return contribution
   }
 
@@ -181,20 +165,13 @@ export class ContributionService {
     patch: Partial<CreateContributionInput>,
     ctx: MutationContext,
   ): Promise<void> {
-    await this.mutate(organizationId, (current) => ({
-      contributions: current.contributions.map((contribution) =>
-        contribution.id === contributionId
-          ? {
-              ...contribution,
-              ...(patch.name ? { name: patch.name.trim() } : {}),
-              ...(patch.description !== undefined ? { description: patch.description?.trim() || undefined } : {}),
-              ...(patch.recipient ? { recipient: patch.recipient } : {}),
-              ...(patch.payout ? { payout: patch.payout } : {}),
-              ...(patch.paymentMethods ? { paymentMethods: paymentMethodsFor(patch.paymentMethods) } : {}),
-            }
-          : contribution,
-      ),
-    }))
+    await this.repo.updatePlan(organizationId, contributionId, {
+      ...(patch.name ? { name: patch.name.trim() } : {}),
+      ...(patch.description !== undefined ? { description: patch.description?.trim() || undefined } : {}),
+      ...(patch.recipient ? { recipient: patch.recipient } : {}),
+      ...(patch.payout ? { payout: patch.payout } : {}),
+      ...(patch.paymentMethods ? { paymentMethods: paymentMethodsFor(patch.paymentMethods) } : {}),
+    })
     void ctx
   }
 
@@ -208,11 +185,7 @@ export class ContributionService {
     status: ContributionStatus,
     ctx: MutationContext,
   ): Promise<void> {
-    await this.mutate(organizationId, (current) => ({
-      contributions: current.contributions.map((contribution) =>
-        contribution.id === contributionId ? { ...contribution, status } : contribution,
-      ),
-    }))
+    await this.repo.setPlanStatus(organizationId, contributionId, status)
     void ctx
   }
 
@@ -222,11 +195,7 @@ export class ContributionService {
     commission: ContributionCommission,
     ctx: MutationContext,
   ): Promise<void> {
-    await this.mutate(organizationId, (current) => ({
-      contributions: current.contributions.map((contribution) =>
-        contribution.id === contributionId ? { ...contribution, commission } : contribution,
-      ),
-    }))
+    await this.repo.updatePlanCommission(organizationId, contributionId, commission)
     void ctx
   }
 
@@ -237,23 +206,20 @@ export class ContributionService {
     enabled: boolean,
     ctx: MutationContext,
   ): Promise<Contribution | undefined> {
-    let updated: Contribution | undefined
-    await this.mutate(organizationId, (current) => ({
-      contributions: current.contributions.map((contribution) => {
-        if (contribution.id !== contributionId) return contribution
-        const slug = contribution.publicLink?.slug ?? `${slugify(contribution.name) || "contribution"}-${contribution.id.slice(-4)}`
-        updated = {
-          ...contribution,
-          publicLink: {
-            slug,
-            enabled,
-            createdAt: contribution.publicLink?.createdAt ?? now(),
-            disabledAt: enabled ? undefined : now(),
-          },
-        }
-        return updated
-      }),
-    }))
+    const dataset = await this.repo.load(organizationId)
+    const contribution = dataset.contributions.find((c) => c.id === contributionId)
+    if (!contribution) return undefined
+
+    const slug = contribution.publicLink?.slug ?? `${slugify(contribution.name) || "contribution"}-${contribution.id.slice(-4)}`
+    const publicLink: ContributionPublicLink = {
+      slug,
+      enabled,
+      createdAt: contribution.publicLink?.createdAt ?? now(),
+      disabledAt: enabled ? undefined : now(),
+    }
+    const updated: Contribution = { ...contribution, publicLink }
+
+    await this.repo.setPlanPublicLink(organizationId, contributionId, publicLink)
     void ctx
     return updated
   }
@@ -300,35 +266,28 @@ export class ContributionService {
     }
 
     const periodKey = input.periodKey ?? periodKeyFor(parseISODate(date), contribution.frequency)
-    const periods = this.applyPaymentToPeriods(dataset.periods, contribution, participant, periodKey, transaction.amount, date)
+    const period = this.applyPaymentToPeriod(dataset.periods, contribution, participant, periodKey, transaction.amount, date)
     const totalContributed = round2(participant.totalContributed + transaction.amount)
     const alreadyWithdrawn = round2(participant.totalContributed - participant.availableBalance)
+    const updatedParticipant: ContributionParticipant = {
+      ...participant,
+      totalContributed,
+      availableBalance: round2(Math.max(0, totalContributed - alreadyWithdrawn)),
+      state: participant.state === "Behind" && totalContributed > 0 ? "On track" : participant.state,
+    }
 
-    await this.mutate(organizationId, (current) => ({
-      transactions: [transaction, ...current.transactions],
-      periods,
-      participants: current.participants.map((p) =>
-        p.id === participant.id
-          ? {
-              ...p,
-              totalContributed,
-              availableBalance: round2(Math.max(0, totalContributed - alreadyWithdrawn)),
-              state: p.state === "Behind" && totalContributed > 0 ? "On track" : p.state,
-            }
-          : p,
-      ),
-    }))
+    await this.repo.recordPayment(organizationId, transaction, updatedParticipant, period)
     return transaction
   }
 
-  private applyPaymentToPeriods(
+  private applyPaymentToPeriod(
     periods: ContributionPeriod[],
     contribution: Contribution,
     participant: ContributionParticipant,
     periodKey: string,
     amount: number,
     today: string,
-  ): ContributionPeriod[] {
+  ): ContributionPeriod {
     const todayISO = today.slice(0, 10)
     const existing = periods.filter(
       (p) => p.contributionId === contribution.id && p.participantId === participant.id,
@@ -336,14 +295,14 @@ export class ContributionService {
     const target = existing.find((p) => p.periodKey === periodKey)
     if (target) {
       const paidAmount = round2(target.paidAmount + amount)
-      return periods.map((p) =>
-        p.id === target.id
-          ? { ...p, paidAmount, state: periodState(p.expectedAmount, paidAmount, p.dueDate, todayISO) }
-          : p,
-      )
+      return {
+        ...target,
+        paidAmount,
+        state: periodState(target.expectedAmount, paidAmount, target.dueDate, todayISO),
+      }
     }
     // No schedule yet for this participant (e.g. a non-frequency contribution): create one entry.
-    const created: ContributionPeriod = {
+    return {
       id: `${contribution.id}:${participant.id}:${periodKey}`,
       organizationId: contribution.organizationId,
       contributionId: contribution.id,
@@ -354,7 +313,6 @@ export class ContributionService {
       paidAmount: amount,
       state: "Paid",
     }
-    return [...periods, created]
   }
 
   /**
@@ -413,19 +371,17 @@ export class ContributionService {
       note: input.note,
     }
 
-    const update: Partial<ContributionDataset> = {
-      withdrawals: [withdrawal, ...dataset.withdrawals],
-    }
+    let settlement: ContributionSettlement | undefined
     if (withdrawal.status === "Completed") {
       await this.creditPayout(organizationId, contribution, withdrawal, dataset.participants, ctx)
-      update.transactions = [this.withdrawalTransaction(contribution, withdrawal, ctx), ...dataset.transactions]
-      update.contributions = dataset.contributions.map((c) =>
-        c.id === contribution.id ? this.settleContribution(c, withdrawal) : c,
-      )
-      update.participants = this.settleParticipants(dataset.participants, withdrawal)
+      settlement = {
+        transaction: this.withdrawalTransaction(contribution, withdrawal, ctx),
+        contribution: this.settleContribution(contribution, withdrawal),
+        participants: this.settleParticipants(dataset.participants, withdrawal),
+      }
     }
 
-    await this.mutate(organizationId, () => update)
+    await this.repo.requestWithdrawal(organizationId, withdrawal, settlement)
     return withdrawal
   }
 
@@ -451,14 +407,19 @@ export class ContributionService {
 
     await this.creditPayout(organizationId, contribution, approved, dataset.participants, ctx)
 
-    await this.mutate(organizationId, (current) => ({
-      withdrawals: current.withdrawals.map((w) => (w.id === withdrawalId ? approved : w)),
-      transactions: [this.withdrawalTransaction(contribution, approved, ctx), ...current.transactions],
-      contributions: current.contributions.map((c) =>
-        c.id === contribution.id ? this.settleContribution(c, approved) : c,
-      ),
-      participants: this.settleParticipants(current.participants, approved),
-    }))
+    const patch: ContributionWithdrawalPatch = {
+      status: approved.status,
+      approvedBy: approved.approvedBy,
+      approvedAt: approved.approvedAt,
+      completedAt: approved.completedAt,
+    }
+    const settlement: ContributionSettlement = {
+      transaction: this.withdrawalTransaction(contribution, approved, ctx),
+      contribution: this.settleContribution(contribution, approved),
+      participants: this.settleParticipants(dataset.participants, approved),
+    }
+
+    await this.repo.approveWithdrawal(organizationId, withdrawalId, patch, settlement)
     return approved
   }
 
@@ -468,13 +429,11 @@ export class ContributionService {
     ctx: MutationContext,
     note?: string,
   ): Promise<void> {
-    await this.mutate(organizationId, (current) => ({
-      withdrawals: current.withdrawals.map((w) =>
-        w.id === withdrawalId && w.status === "Pending approval"
-          ? { ...w, status: "Rejected", approvedBy: ctx.actor.name, approvedAt: now(), note: note ?? w.note }
-          : w,
-      ),
-    }))
+    const dataset = await this.repo.load(organizationId)
+    const withdrawal = dataset.withdrawals.find((w) => w.id === withdrawalId)
+    if (!withdrawal || withdrawal.status !== "Pending approval") return
+    await this.repo.rejectWithdrawal(organizationId, withdrawalId, note ?? withdrawal.note)
+    void ctx
   }
 
   /** Releases scheduled payouts whose date has arrived. Called on load and by the payouts page. */
@@ -486,6 +445,7 @@ export class ContributionService {
     if (!due.length) return 0
 
     const released: ContributionTransaction[] = []
+    const completedWithdrawals: ContributionWithdrawal[] = []
     let contributions = dataset.contributions
     let participants = dataset.participants
     for (const withdrawal of due) {
@@ -496,118 +456,27 @@ export class ContributionService {
       released.push(this.withdrawalTransaction(contribution, completed, ctx))
       contributions = contributions.map((c) => (c.id === contribution.id ? this.settleContribution(c, completed) : c))
       participants = this.settleParticipants(participants, completed)
-      withdrawal.status = "Completed"
-      withdrawal.completedAt = now()
+      completedWithdrawals.push(completed)
     }
 
-    await this.mutate(organizationId, () => ({
-      withdrawals: [...dataset.withdrawals],
-      transactions: [...released, ...dataset.transactions],
+    await this.repo.releasePayouts(organizationId, today, {
+      withdrawals: completedWithdrawals,
+      transactions: released,
       contributions,
       participants,
-    }))
+    })
     return due.length
   }
 
   /**
-   * Public contribution submitted from a shared link. No FinSquare account is required, and
-   * the backend must verify the link is still open and settle the payment before crediting.
+   * Public contribution submitted from a shared link. No FinSquare account is required. The
+   * repository resolves the link and records the payment; the backend mints the reference and
+   * leaves the money for an administrator to confirm.
    */
   async submitPublicContribution(
     input: PublicContributionInput,
-    ctx?: MutationContext,
   ): Promise<PublicContributionReceipt | undefined> {
-    // The link is public, so it carries no administrator session. A wallet payment still needs a
-    // mode and an actor, so the contributor stands in for both.
-    const mutationCtx: MutationContext = ctx ?? {
-      actor: { id: "public-link", name: "Contribution link" },
-      mode: "simulated",
-    }
-    const dataset = await this.repo.load(PUBLIC_LINK_ORG_ID)
-    const contribution = dataset.contributions.find((c) => c.publicLink?.slug === input.slug)
-    if (!contribution) return undefined
-
-    // A member's own link identifies them, so the payment lands on their balance rather than
-    // being treated as a new external contributor. Member links do not need the pool link to be
-    // open — they work while the member is on the plan and it is Active.
-    const onBehalfOf = input.memberId
-      ? dataset.participants.find((p) => p.contributionId === contribution.id && p.memberId === input.memberId)
-      : undefined
-    const openToEveryone = publicLinkAvailable(contribution)
-    if (input.memberId ? !onBehalfOf || contribution.status !== "Active" : !openToEveryone) return undefined
-
-    const existing =
-      onBehalfOf ??
-      dataset.participants.find(
-        (p) => p.contributionId === contribution.id && p.memberName.toLowerCase() === input.contributorName.toLowerCase(),
-      )
-    const participant: ContributionParticipant =
-      existing ?? {
-        id: nextId(`${contribution.id}:ext`),
-        organizationId: PUBLIC_LINK_ORG_ID,
-        contributionId: contribution.id,
-        memberName: input.contributorName.trim(),
-        isExternal: true,
-        contact: { phone: input.phone, email: input.email },
-        expectedAmount: 0,
-        totalContributed: 0,
-        availableBalance: 0,
-        missedCount: 0,
-        lateCount: 0,
-        state: "On track",
-        joinedAt: now(),
-      }
-
-    // A wallet payment settles immediately, so the money moves first and the balance updates now.
-    // Anything else waits for the provider, and the administrator confirms it later.
-    const payingFromWallet = input.method === "wallet"
-    if (payingFromWallet) {
-      await this.debitMemberWallet(PUBLIC_LINK_ORG_ID, contribution, participant, round2(input.amount), mutationCtx)
-    }
-    const amount = round2(input.amount)
-    const settledBalance = payingFromWallet && existing
-      ? {
-          totalContributed: round2(existing.totalContributed + amount),
-          availableBalance: round2(existing.availableBalance + amount),
-        }
-      : {}
-
-    const reference = `PUB-${Math.floor(100_000 + Math.random() * 899_999)}`
-    const transaction: ContributionTransaction = {
-      id: nextId("cttx"),
-      organizationId: PUBLIC_LINK_ORG_ID,
-      reference,
-      contributionId: contribution.id,
-      participantId: participant.id,
-      contributorName: participant.memberName,
-      type: "Contribution",
-      method: input.method,
-      amount,
-      fee: 0,
-      commission: 0,
-      netAmount: amount,
-      direction: "credit",
-      status: payingFromWallet ? "Completed" : "Pending",
-      date: now(),
-      recordedBy: onBehalfOf ? "Member link" : "Public link",
-      external: !onBehalfOf,
-      simulated: isSimulated(mutationCtx),
-    }
-
-    await this.repo.commit(PUBLIC_LINK_ORG_ID, {
-      participants: existing
-        ? dataset.participants.map((p) => (p.id === existing.id ? { ...p, ...settledBalance } : p))
-        : [...dataset.participants, participant],
-      transactions: [transaction, ...dataset.transactions],
-    })
-
-    return {
-      reference,
-      contributionName: contribution.name,
-      contributorName: participant.memberName,
-      amount: transaction.amount,
-      recipientLabel: contribution.recipient.label,
-    }
+    return this.repo.submitPublicContribution(input.slug, input)
   }
 
   /**
@@ -619,14 +488,8 @@ export class ContributionService {
   async findPublicContribution(
     slug: string,
     memberId?: string,
-  ): Promise<{ contribution: Contribution; dataset: ContributionDataset; participant?: ContributionParticipant } | undefined> {
-    const dataset = await this.repo.load(PUBLIC_LINK_ORG_ID)
-    const contribution = dataset.contributions.find((c) => c.publicLink?.slug === slug)
-    if (!contribution) return undefined
-    const participant = memberId
-      ? dataset.participants.find((p) => p.contributionId === contribution.id && p.memberId === memberId)
-      : undefined
-    return { contribution, dataset, participant }
+  ): Promise<PublicContributionView | undefined> {
+    return this.repo.loadPublicContribution(slug, memberId)
   }
 
   /**

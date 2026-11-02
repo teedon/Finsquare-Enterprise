@@ -21,22 +21,23 @@ describe("mock contribution repository", () => {
     expect(dataset.transactions).toEqual([])
   })
 
-  it("merges committed collections and notifies subscribers", async () => {
+  it("applies commands and notifies subscribers", async () => {
     const repository = createMockContributionRepository()
     const listener = vi.fn()
     const unsubscribe = repository.subscribe(listener)
 
     const before = await repository.load("org-lagos-farmers")
-    await repository.commit("org-lagos-farmers", { contributions: before.contributions.slice(0, 2) })
+    const plan = { ...buildContributionDataset().contributions[0], id: "plan-test", name: "Test Plan" }
+    await repository.createPlan("org-lagos-farmers", plan, [], [])
 
     expect(listener).toHaveBeenCalledTimes(1)
     const after = await repository.load("org-lagos-farmers")
-    expect(after.contributions).toHaveLength(2)
-    // Collections that were not part of the commit are preserved.
+    expect(after.contributions.some((c) => c.id === "plan-test")).toBe(true)
+    // Collections not touched by the command are preserved.
     expect(after.transactions).toHaveLength(before.transactions.length)
 
     unsubscribe()
-    await repository.commit("org-lagos-farmers", { contributions: [] })
+    await repository.setPlanStatus("org-lagos-farmers", "plan-test", "Paused")
     expect(listener).toHaveBeenCalledTimes(1)
   })
 
@@ -44,10 +45,12 @@ describe("mock contribution repository", () => {
     const first = createMockContributionRepository()
     const second = createMockContributionRepository()
 
-    await first.commit("org-lagos-farmers", { contributions: [] })
+    const plan = { ...buildContributionDataset().contributions[0], id: "plan-isolated" }
+    await first.createPlan("org-lagos-farmers", plan, [], [])
 
     const [a, b] = await Promise.all([first.load("org-lagos-farmers"), second.load("org-lagos-farmers")])
-    expect(a.contributions).toHaveLength(0)
-    expect(b.contributions.length).toBeGreaterThan(0)
+    expect(a.contributions.some((c) => c.id === "plan-isolated")).toBe(true)
+    expect(b.contributions.some((c) => c.id === "plan-isolated")).toBe(false)
   })
 })
+
