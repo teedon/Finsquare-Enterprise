@@ -65,7 +65,7 @@ export const emptyOrganization: OrganizationProfile = {
   registrationNumber: "",
   yearEstablished: "",
   legalName: "",
-  country: "",
+  country: "Nigeria",
   description: "",
   memberCount: "",
   areaOfOperation: "",
