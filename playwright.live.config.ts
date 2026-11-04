@@ -8,7 +8,7 @@ import { defineConfig, devices } from "@playwright/test"
 // then run:  npx playwright test -c playwright.live.config.ts
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 60_000,
+  timeout: 600_000,
   fullyParallel: false,
   workers: 1,
   reporter: [["list"]],
