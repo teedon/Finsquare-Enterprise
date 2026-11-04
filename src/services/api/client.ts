@@ -38,7 +38,9 @@ function unwrapEnvelope(payload: unknown): unknown {
     for (const [key, value] of Object.entries(envelope)) {
       if (key !== "success" && key !== "message" && key !== "data") flags[key] = value
     }
-    if (data && typeof data === "object") return { ...flags, ...(data as Record<string, unknown>) }
+    if (data && typeof data === "object" && !Array.isArray(data)) {
+      return { ...flags, ...(data as Record<string, unknown>) }
+    }
     return data
   }
   return payload

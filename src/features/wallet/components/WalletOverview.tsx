@@ -13,7 +13,13 @@ export default function WalletOverview({ ctx }: { ctx: WalletCtx }) {
   const main = wallets.find((w) => w.type === "Main Organization") ?? wallets[0]
   const branchWallets = wallets.filter((w) => !isMemberWallet(w) && w.id !== main?.id)
   const memberWalletCount = wallets.filter(isMemberWallet).length
-  if (!main) return <div className="tab-empty"><b>No wallet available</b><span>You have not been granted access to a wallet. Ask a Finance Manager to grant access.</span></div>
+  if (!main)
+    return (
+      <>
+        <SectionHeader eyebrow="WALLET" title="Wallet" description="Your organization's main account. All payments are made from here." />
+        <div className="tab-empty"><b>No wallet available</b><span>You have not been granted access to a wallet. Ask a Finance Manager to grant access.</span></div>
+      </>
+    )
 
   const txs = data.transactions.filter((t) => t.walletId === main.id && ctx.canOn(main, "wallet.view_transactions"))
   const thirty = Date.now() - 30 * 864e5
