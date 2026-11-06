@@ -16,6 +16,11 @@ export function configureApiAuth(provider: AccessTokenProvider) {
   accessTokenProvider = provider
 }
 
+/** Read the current access token through the configured provider. */
+export function getAccessToken(): Promise<string | null> {
+  return Promise.resolve(accessTokenProvider())
+}
+
 function normalizeStatus(status: number): ApiError["code"] {
   if (status === 401) return "unauthorized"
   if (status === 403) return "forbidden"

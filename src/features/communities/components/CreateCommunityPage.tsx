@@ -1,8 +1,7 @@
 import { useState } from "react"
-import { Upload } from "@/icons"
 import { Button, Field, SelectField } from "@/components/ui"
 import { ShellPage } from "@/components/layout/ShellPage"
-import OrgAvatar from "@/components/layout/OrgAvatar"
+import LogoUpload from "@/components/layout/LogoUpload"
 import AccentPicker from "@/features/settings/components/AccentPicker"
 import { ORGANIZATION_TYPES } from "@/app/providers/WorkspaceProvider"
 import { useCommunities } from "../hooks/useCommunities"
@@ -101,32 +100,12 @@ export default function CreateCommunityPage({
           <b>
             Logo <small>optional</small>
           </b>
-          <div className="logo-upload">
-            <OrgAvatar large name={values.name} logo={values.logo} />
-            <label className="btn btn-secondary" style={{ cursor: "pointer" }}>
-              <Upload size={14} /> {values.logo ? "Replace logo" : "Upload logo"}
-              <input
-                type="file"
-                hidden
-                accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  event.target.value = ""
-                  if (!file) return
-                  if (file.size > 512 * 1024) return setLogoError("Logo must be 512 KB or smaller")
-                  setLogoError("")
-                  const reader = new FileReader()
-                  reader.onload = () => setValues((current) => ({ ...current, logo: String(reader.result) }))
-                  reader.readAsDataURL(file)
-                }}
-              />
-            </label>
-            {values.logo && (
-              <Button variant="ghost" onClick={() => setValues({ ...values, logo: "" })}>
-                Remove
-              </Button>
-            )}
-          </div>
+          <LogoUpload
+            name={values.name}
+            logo={values.logo}
+            onChange={(logo) => setValues((current) => ({ ...current, logo }))}
+            onError={(message) => setLogoError(message ?? "")}
+          />
           {logoError && <small className="field-error">{logoError}</small>}
         </div>
 

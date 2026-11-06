@@ -4,10 +4,11 @@ import { useAppRoute } from "@/app/routes/useAppRoute"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { Badge, Button, Field, SelectField } from "@/components/ui"
 import OrgAvatar from "@/components/layout/OrgAvatar"
+import LogoUpload from "@/components/layout/LogoUpload"
 import AccentPicker from "@/features/settings/components/AccentPicker"
 import Brand, { BrandMark } from "@/components/layout/Brand"
 import { readableOn } from "@/lib/theme/accent"
-import { ArrowLeft, ArrowRight, BadgeCheck, Check, Landmark, Upload } from "@/icons"
+import { ArrowLeft, ArrowRight, BadgeCheck, Check, Landmark } from "@/icons"
 import { accountSchema, corporateSchema, organizationInfoSchema, organizationSchema, validate, type FieldErrors } from "../domain/validation"
 import CorporateAccountForm from "./CorporateAccountForm"
 import type { AdminAccount, CorporateAccountDetails } from "../types"
@@ -166,23 +167,12 @@ export default function OnboardingFlow({ onLogin }: { onLogin?: () => void } = {
                   </div>
                   <div className="onb-block">
                     <b>Logo <small>optional</small></b>
-                    <div className="logo-upload">
-                      <OrgAvatar large />
-                      <label className="btn btn-secondary" style={{ cursor: "pointer" }}>
-                        <Upload size={14} /> {org.logo ? "Replace" : "Upload logo"}
-                        <input type="file" hidden accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          e.target.value = ""
-                          if (!file) return
-                          if (file.size > 512 * 1024) return setLogoError("Logo must be 512 KB or smaller")
-                          setLogoError("")
-                          const reader = new FileReader()
-                          reader.onload = () => setOrg({ logo: String(reader.result) })
-                          reader.readAsDataURL(file)
-                        }} />
-                      </label>
-                      {org.logo && <Button variant="ghost" onClick={() => setOrg({ logo: "" })}>Remove</Button>}
-                    </div>
+                    <LogoUpload
+                      name={org.name}
+                      logo={org.logo}
+                      onChange={(logo) => setOrg({ logo })}
+                      onError={(message) => setLogoError(message ?? "")}
+                    />
                     {logoError && <small className="field-error">{logoError}</small>}
                   </div>
                   <div className="onb-block">

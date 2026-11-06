@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
 import AccentPicker from "./AccentPicker"
 import OrgAvatar from "@/components/layout/OrgAvatar"
+import LogoUpload from "@/components/layout/LogoUpload"
 import type { ThemePreference } from "@/app/providers/WorkspaceProvider"
 import {
   Blocks,
@@ -131,32 +131,16 @@ export function SettingsPage({
               <span>Shown in the workspace switcher, on the organization page and in previews. PNG, JPG or SVG, up to 512 KB.</span>
             </div>
           </div>
-          <div className="logo-upload" style={{ padding: 16 }}>
-            <OrgAvatar large />
-            <label className="btn btn-secondary" style={{ cursor: "pointer" }}>
-              {organization.logo ? "Replace logo" : "Upload logo"}
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                hidden
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  event.target.value = ""
-                  if (!file) return
-                  if (file.size > 512 * 1024) return notify("Logo must be 512 KB or smaller")
-                  const reader = new FileReader()
-                  reader.onload = () => {
-                    setLogo(String(reader.result))
-                    notify("Logo updated")
-                  }
-                  reader.readAsDataURL(file)
-                }}
-              />
-            </label>
-            {organization.logo && (
-              <Button variant="ghost" onClick={() => { setLogo(""); notify("Logo removed") }}>Remove</Button>
-            )}
-          </div>
+          <LogoUpload
+            name={organization.name}
+            logo={organization.logo}
+            style={{ padding: 16 }}
+            onChange={(logo) => {
+              setLogo(logo)
+              notify(logo ? "Logo updated" : "Logo removed")
+            }}
+            onError={(message) => message && notify(message)}
+          />
         </section>
 
         <section className="panel appearance-panel">
