@@ -20,7 +20,14 @@ class MockCorporateAccountRepository implements CorporateAccountRepository {
 
 class ApiCorporateAccountRepository implements CorporateAccountRepository {
   async get(): Promise<CorporateAccountState> {
-    return apiClient.get<CorporateAccountState>(endpoints.corporateAccount.account)
+    const loaded = await apiClient.get<Partial<CorporateAccountState>>(endpoints.corporateAccount.account)
+    // The backend returns an empty `details` object for institutions that have not
+    // connected a corporate account yet; merge the defaults so the form always
+    // has every field (notably `documents: []`) to render against.
+    return {
+      status: loaded.status ?? "Not connected",
+      details: { ...emptyCorporateDetails, ...(loaded.details ?? {}) },
+    }
   }
 
   async update(_organizationId: string, state: CorporateAccountState): Promise<void> {
