@@ -1,0 +1,57 @@
+- generic [ref=f2e37]:
+  - banner [ref=f2e38]:
+    - generic [ref=f2e42]:
+      - generic [ref=f2e43]: FinSquare
+      - generic [ref=f2e44]: ENTERPRISE
+    - generic [ref=f2e45]:
+      - text: Already have an account?
+      - button "Log in" [ref=f2e46] [cursor=pointer]
+  - main [ref=f2e47]:
+    - list "Setup progress" [ref=f2e48]:
+      - listitem [ref=f2e49]:
+        - button "1 Create account" [ref=f2e50] [cursor=pointer]:
+          - generic [ref=f2e51]: "1"
+          - generic [ref=f2e52]: Create account
+      - listitem [ref=f2e53]:
+        - button "2 Set up organization" [disabled] [ref=f2e54]:
+          - generic [ref=f2e55]: "2"
+          - generic [ref=f2e56]: Set up organization
+      - listitem [ref=f2e57]:
+        - button "3 Organization details" [disabled] [ref=f2e58]:
+          - generic [ref=f2e59]: "3"
+          - generic [ref=f2e60]: Organization details
+      - listitem [ref=f2e61]:
+        - button "4 Corporate account" [disabled] [ref=f2e62]:
+          - generic [ref=f2e63]: "4"
+          - generic [ref=f2e64]: Corporate account
+      - listitem [ref=f2e65]:
+        - button "5 Finish" [disabled] [ref=f2e66]:
+          - generic [ref=f2e67]: "5"
+          - generic [ref=f2e68]: Finish
+    - generic [ref=f2e71]:
+      - generic [ref=f2e72]:
+        - generic [ref=f2e73]: Your administrator login
+        - generic [ref=f2e74]: Step 1 of 5
+      - generic [ref=f2e78]:
+        - heading "Welcome to FinSquare" [level=1] [ref=f2e79]
+        - paragraph [ref=f2e80]: Let's set up your organization's workspace.
+      - heading "Create your administrator account" [level=2] [ref=f2e81]
+      - paragraph [ref=f2e82]: You will be the first Super Admin of this workspace.
+      - generic [ref=f2e83]:
+        - generic [ref=f2e85]:
+          - generic [ref=f2e86]: Full name
+          - textbox "Full name" [ref=f2e87]: Ada Okoye
+        - generic [ref=f2e89]:
+          - generic [ref=f2e90]: Work email
+          - textbox "Work email" [ref=f2e91]: ada.okoye+152852@example.com
+        - generic [ref=f2e93]:
+          - generic [ref=f2e94]: Phone number
+          - textbox "Phone number" [ref=f2e95]:
+            - /placeholder: "+234"
+            - text: "+23480152852"
+        - generic [ref=f2e97]:
+          - generic [ref=f2e98]: Password
+          - textbox "Password" [ref=f2e99]:
+            - /placeholder: At least 8 characters
+      - button "Continue" [ref=f2e101] [cursor=pointer]
+    - paragraph [ref=f2e103]: Everything here stays editable in Settings.

@@ -1,0 +1,88 @@
+- generic [ref=f4e37]:
+  - banner [ref=f4e38]:
+    - generic [ref=f4e42]:
+      - generic [ref=f4e43]: FinSquare
+      - generic [ref=f4e44]: ENTERPRISE
+    - generic [ref=f4e45]:
+      - text: Already have an account?
+      - button "Log in" [ref=f4e46] [cursor=pointer]
+  - main [ref=f4e47]:
+    - list "Setup progress" [ref=f4e48]:
+      - listitem [ref=f4e49]:
+        - button "Create account" [ref=f4e105] [cursor=pointer]
+      - listitem [ref=f4e53]:
+        - button "Set up organization" [ref=f4e179] [cursor=pointer]
+      - listitem [ref=f4e57]:
+        - button "3 Organization details" [ref=f4e58] [cursor=pointer]:
+          - generic [ref=f4e59]: "3"
+          - generic [ref=f4e60]: Organization details
+      - listitem [ref=f4e61]:
+        - button "4 Corporate account" [disabled] [ref=f4e62]:
+          - generic [ref=f4e63]: "4"
+          - generic [ref=f4e64]: Corporate account
+      - listitem [ref=f4e65]:
+        - button "5 Finish" [disabled] [ref=f4e66]:
+          - generic [ref=f4e67]: "5"
+          - generic [ref=f4e68]: Finish
+    - generic [ref=f4e181]:
+      - generic [ref=f4e182]:
+        - generic [ref=f4e183]: Registration and contacts
+        - generic [ref=f4e184]: Step 3 of 5
+      - heading "A few organization details" [level=1] [ref=f4e185]
+      - paragraph [ref=f4e186]: These appear on member records, statements and compliance documents. Anything marked optional can be skipped.
+      - generic [ref=f4e187]:
+        - generic [ref=f4e189]:
+          - generic [ref=f4e190]: Registered / business name
+          - textbox "Registered / business name" [ref=f4e191]: Ada Farmers Cooperative Ltd
+        - generic [ref=f4e193]:
+          - generic [ref=f4e194]: Registration number (optional)
+          - textbox "Registration number (optional)" [ref=f4e195]:
+            - /placeholder: e.g. RC-1048223
+        - generic [ref=f4e197]:
+          - generic [ref=f4e198]: Organization email
+          - textbox "Organization email" [ref=f4e199]: ada.okoye+1202@example.com
+        - generic [ref=f4e201]:
+          - generic [ref=f4e202]: Organization phone
+          - textbox "Organization phone" [ref=f4e203]:
+            - /placeholder: "+234"
+            - text: "+2348012345678"
+        - generic [ref=f4e205]:
+          - generic [ref=f4e206]: Website (optional)
+          - textbox "Website (optional)" [ref=f4e207]:
+            - /placeholder: www.example.org
+        - generic [ref=f4e208]:
+          - generic [ref=f4e209]: Country
+          - combobox "Country" [ref=f4e210]:
+            - option "Nigeria" [selected]
+            - option "Ghana"
+            - option "Kenya"
+            - option "South Africa"
+            - option "Other"
+        - generic [ref=f4e212]:
+          - generic [ref=f4e213]: State
+          - textbox "State" [ref=f4e214]: Lagos
+        - generic [ref=f4e216]:
+          - generic [ref=f4e217]: City
+          - textbox "City" [ref=f4e218]: Ikeja
+        - generic [ref=f4e220]:
+          - generic [ref=f4e221]: Physical address
+          - textbox "Physical address" [ref=f4e222]: 12 Market Road
+        - generic [ref=f4e224]:
+          - generic [ref=f4e225]: Year established (optional)
+          - textbox "Year established (optional)" [ref=f4e226]:
+            - /placeholder: e.g. 2014
+        - generic [ref=f4e228]:
+          - generic [ref=f4e229]: Number of members (optional)
+          - textbox "Number of members (optional)" [ref=f4e230]
+        - generic [ref=f4e232]:
+          - generic [ref=f4e233]: Primary area of operation (optional)
+          - textbox "Primary area of operation (optional)" [ref=f4e234]:
+            - /placeholder: e.g. Agriculture
+      - generic [ref=f4e235]:
+        - generic [ref=f4e236]: Description (optional)
+        - textbox "Description (optional)" [ref=f4e237]:
+          - /placeholder: What does your organization do?
+      - generic [ref=f4e238]:
+        - button "Back" [ref=f4e239] [cursor=pointer]
+        - button "Save and continue" [ref=f4e241] [cursor=pointer]
+    - paragraph [ref=f4e103]: Everything here stays editable in Settings.

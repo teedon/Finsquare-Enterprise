@@ -11,6 +11,10 @@ interface MfiCommunityDTO {
   color?: string | null
   description: string | null
   mfiRole: MfiRole
+  mfiCustomRoleId?: string | null
+  mfiCustomRoleName?: string | null
+  mfiCustomRolePermissions?: string[]
+  mfiCustomRoleScope?: string | null
   details?: { profile?: Record<string, unknown> } | null
 }
 
@@ -23,12 +27,7 @@ interface MfiCommunityDTO {
 export class ApiCommunityRepository implements CommunityRepository {
   async list(): Promise<CommunityMembership[]> {
     const response = await apiClient.get<MfiCommunityDTO[]>(endpoints.organizations.list)
-    return response.map((community) =>
-      mapMfiMembership(
-        { id: community.communityId, ...community },
-        community.mfiRole,
-      ),
-    )
+    return response.map((community) => mapMfiMembership({ id: community.communityId, ...community }, community.mfiRole))
   }
 
   async create(input: CreateCommunityInput): Promise<CommunityMembership> {
@@ -40,9 +39,6 @@ export class ApiCommunityRepository implements CommunityRepository {
       logo: input.logo,
       color: input.accent,
     })
-    return mapMfiMembership(
-      { id: response.communityId, ...response },
-      response.mfiRole,
-    )
+    return mapMfiMembership({ id: response.communityId, ...response }, response.mfiRole)
   }
 }

@@ -1,0 +1,45 @@
+- generic [ref=f4e37]:
+  - banner [ref=f4e38]:
+    - generic [ref=f4e42]:
+      - generic [ref=f4e43]: FinSquare
+      - generic [ref=f4e44]: ENTERPRISE
+    - generic [ref=f4e45]:
+      - text: Already have an account?
+      - button "Log in" [ref=f4e46] [cursor=pointer]
+  - main [ref=f4e47]:
+    - list "Setup progress" [ref=f4e48]:
+      - listitem [ref=f4e49]:
+        - button "Create account" [ref=f4e105] [cursor=pointer]
+      - listitem [ref=f4e53]:
+        - button "Set up organization" [ref=f4e179] [cursor=pointer]
+      - listitem [ref=f4e57]:
+        - button "Organization details" [ref=f4e243] [cursor=pointer]
+      - listitem [ref=f4e61]:
+        - button "Corporate account" [ref=f4e345] [cursor=pointer]
+      - listitem [ref=f4e65]:
+        - button "5 Finish" [ref=f4e66] [cursor=pointer]:
+          - generic [ref=f4e67]: "5"
+          - generic [ref=f4e68]: Finish
+    - generic [ref=f4e347]:
+      - generic [ref=f4e348]:
+        - generic [ref=f4e349]: Review and finish
+        - generic [ref=f4e350]: Step 5 of 5
+      - heading "You're all set, Ada" [level=1] [ref=f4e353]
+      - paragraph [ref=f4e354]: Your workspace is ready. Here is a quick summary before you step in.
+      - list [ref=f4e355]:
+        - listitem [ref=f4e356]:
+          - text: Administrator account
+          - generic [ref=f4e358]: ada.okoye+153347@example.com
+        - listitem [ref=f4e359]:
+          - text: Organization
+          - generic [ref=f4e361]: Ada Farmers Coop 153347
+          - text: · Cooperative
+        - listitem [ref=f4e362]: Organization details saved
+        - listitem [ref=f4e364]:
+          - text: Corporate account & wallet
+          - generic [ref=f4e366]: Not set up — finish it any time
+      - generic [ref=f4e367]: Finish the corporate account step whenever you're ready — a banner in the workspace will bring you back to it.
+      - generic [ref=f4e370]:
+        - button "Back" [ref=f4e371] [cursor=pointer]
+        - button "Complete setup" [ref=f4e373] [cursor=pointer]
+    - paragraph [ref=f4e103]: Everything here stays editable in Settings.

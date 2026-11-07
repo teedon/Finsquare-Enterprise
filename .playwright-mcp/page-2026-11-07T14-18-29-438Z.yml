@@ -1,0 +1,46 @@
+- generic [ref=e37]:
+  - banner [ref=e38]:
+    - generic [ref=e42]:
+      - generic [ref=e43]: FinSquare
+      - generic [ref=e44]: ENTERPRISE
+    - generic [ref=e45]:
+      - text: Already have an account?
+      - button "Log in" [ref=e46] [cursor=pointer]
+  - main [ref=e47]:
+    - list "Setup progress" [ref=e48]:
+      - listitem [ref=e49]:
+        - button "Create account" [ref=e104] [cursor=pointer]
+      - listitem [ref=e53]:
+        - button "Set up organization" [ref=e178] [cursor=pointer]
+      - listitem [ref=e57]:
+        - button "Organization details" [ref=e242] [cursor=pointer]
+      - listitem [ref=e61]:
+        - button "Corporate account" [ref=e344] [cursor=pointer]
+      - listitem [ref=e65]:
+        - button "5 Finish" [ref=e66] [cursor=pointer]:
+          - generic [ref=e67]: "5"
+          - generic [ref=e68]: Finish
+    - generic [ref=e346]:
+      - generic [ref=e347]:
+        - generic [ref=e348]: Review and finish
+        - generic [ref=e349]: Step 5 of 5
+      - heading "You're all set, Ada" [level=1] [ref=e352]
+      - paragraph [ref=e353]: Your workspace is ready. Here is a quick summary before you step in.
+      - list [ref=e354]:
+        - listitem [ref=e355]:
+          - text: Administrator account
+          - generic [ref=e357]: ada.okoye+1202@example.com
+        - listitem [ref=e358]:
+          - text: Organization
+          - generic [ref=e360]: Ada Farmers Cooperative
+          - text: · Cooperative
+        - listitem [ref=e361]: Organization details saved
+        - listitem [ref=e363]:
+          - text: Corporate account & wallet
+          - generic [ref=e365]: Not set up — finish it any time
+      - generic [ref=e366]: Finish the corporate account step whenever you're ready — a banner in the workspace will bring you back to it.
+      - generic [ref=e373]: An MFI with this name already exists
+      - generic [ref=e369]:
+        - button "Back" [ref=e370] [cursor=pointer]
+        - button "Complete setup" [ref=e372] [cursor=pointer]
+    - paragraph [ref=e103]: Everything here stays editable in Settings.

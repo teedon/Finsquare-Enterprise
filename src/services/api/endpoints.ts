@@ -52,8 +52,7 @@ export const endpoints = {
     types: "/groups/types",
     detail: (groupId: string) => `/groups/${groupId}`,
     members: (groupId: string) => `/groups/${groupId}/members`,
-    member: (groupId: string, memberId: string) =>
-      `/groups/${groupId}/members/${memberId}`,
+    member: (groupId: string, memberId: string) => `/groups/${groupId}/members/${memberId}`,
     archive: (groupId: string) => `/groups/${groupId}/archive`,
     activate: (groupId: string) => `/groups/${groupId}/activate`,
   },
@@ -62,8 +61,7 @@ export const endpoints = {
     detail: (branchId: string) => `/branches/${branchId}`,
     members: (branchId: string) => `/branches/${branchId}/members`,
     groups: (branchId: string) => `/branches/${branchId}/groups`,
-    administrators: (branchId: string) =>
-      `/branches/${branchId}/administrators`,
+    administrators: (branchId: string) => `/branches/${branchId}/administrators`,
     archive: (branchId: string) => `/branches/${branchId}/archive`,
     activate: (branchId: string) => `/branches/${branchId}/activate`,
   },
@@ -76,6 +74,9 @@ export const endpoints = {
     reactivate: (staffId: string) => `/staff/${staffId}/reactivate`,
     deactivate: (staffId: string) => `/staff/${staffId}/deactivate`,
     role: (staffId: string) => `/staff/${staffId}/role`,
+    customRole: (staffId: string) => `/staff/${staffId}/custom-role`,
+    roles: "/roles",
+    roleDefinition: (roleId: string) => `/roles/${roleId}`,
   },
   compliance: {
     statuses: "/compliance",
@@ -99,8 +100,7 @@ export const endpoints = {
   },
   dues: {
     list: (organizationId: string) => `/organizations/${organizationId}/dues`,
-    detail: (organizationId: string, duesPlanId: string) =>
-      `/organizations/${organizationId}/dues/${duesPlanId}`,
+    detail: (organizationId: string, duesPlanId: string) => `/organizations/${organizationId}/dues/${duesPlanId}`,
     participants: (organizationId: string, duesPlanId: string) =>
       `/organizations/${organizationId}/dues/${duesPlanId}/participants`,
     charges: (organizationId: string, duesPlanId: string) =>
@@ -108,8 +108,7 @@ export const endpoints = {
     transactions: (organizationId: string, duesPlanId: string) =>
       `/organizations/${organizationId}/dues/${duesPlanId}/transactions`,
     /** Transactional batch used by the mock-shaped repository; production should expose named commands. */
-    commands: (organizationId: string) =>
-      `/organizations/${organizationId}/dues/commands`,
+    commands: (organizationId: string) => `/organizations/${organizationId}/dues/commands`,
   },
   communications: {
     workspace: "/enterprise/communications",
@@ -121,8 +120,7 @@ export const endpoints = {
   },
   forms: {
     /** The shared question library: one library per organization, used by every form builder. */
-    questionLibrary: (organizationId: string) =>
-      `/organizations/${organizationId}/question-library`,
+    questionLibrary: (organizationId: string) => `/organizations/${organizationId}/question-library`,
   },
   memberApplications: {
     workspace: "/member-applications",

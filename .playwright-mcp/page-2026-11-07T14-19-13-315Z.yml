@@ -1,0 +1,97 @@
+- generic [ref=e37]:
+  - banner [ref=e38]:
+    - generic [ref=e42]:
+      - generic [ref=e43]: FinSquare
+      - generic [ref=e44]: ENTERPRISE
+    - generic [ref=e45]:
+      - text: Already have an account?
+      - button "Log in" [ref=e46] [cursor=pointer]
+  - main [ref=e47]:
+    - list "Setup progress" [ref=e48]:
+      - listitem [ref=e49]:
+        - button "Create account" [ref=e104] [cursor=pointer]
+      - listitem [ref=e53]:
+        - button "2 Set up organization" [active] [ref=e374] [cursor=pointer]:
+          - generic [ref=e55]: "2"
+          - generic [ref=e56]: Set up organization
+      - listitem [ref=e57]:
+        - button "3 Organization details" [disabled] [ref=e375]:
+          - generic [ref=e59]: "3"
+          - generic [ref=e60]: Organization details
+      - listitem [ref=e61]:
+        - button "4 Corporate account" [disabled] [ref=e376]:
+          - generic [ref=e63]: "4"
+          - generic [ref=e64]: Corporate account
+      - listitem [ref=e65]:
+        - button "5 Finish" [disabled] [ref=e66]:
+          - generic [ref=e67]: "5"
+          - generic [ref=e68]: Finish
+    - generic [ref=e377]:
+      - generic [ref=e378]:
+        - generic [ref=e379]: Name, logo and brand colors
+        - generic [ref=e380]: Step 2 of 5
+      - heading "Make the workspace yours" [level=1] [ref=e381]
+      - paragraph [ref=e382]: Tell us who you are, then pick the accent colors your members will see.
+      - generic [ref=e383]:
+        - generic [ref=e384]:
+          - generic [ref=e385]:
+            - generic [ref=e387]:
+              - generic [ref=e388]: Organization name
+              - textbox "Organization name" [ref=e389]: Ada Farmers Cooperative
+            - generic [ref=e391]:
+              - generic [ref=e392]: Organization type
+              - combobox "Organization type" [ref=e393]:
+                - option "Cooperative" [selected]
+                - option "Association"
+                - option "Union"
+                - option "MFI"
+                - option "Staff association"
+                - option "Farmers' group"
+                - option "Other"
+          - generic [ref=e394]:
+            - generic [ref=e395]: Logo optional
+            - generic [ref=e396]:
+              - generic [ref=e397]: AF
+              - generic [ref=e398] [cursor=pointer]: Upload logo
+          - generic [ref=e400]:
+            - generic [ref=e401]: Primary color
+            - generic [ref=e402]:
+              - group "Example colors" [ref=e403]:
+                - button "FinSquare blue" [pressed] [ref=e404] [cursor=pointer]
+                - button "Indigo" [ref=e406] [cursor=pointer]
+                - button "Violet" [ref=e407] [cursor=pointer]
+                - button "Teal" [ref=e408] [cursor=pointer]
+                - button "Orange" [ref=e409] [cursor=pointer]
+              - generic [ref=e410]:
+                - generic "Pick a custom color" [ref=e411] [cursor=pointer]:
+                  - textbox "Custom color wheel" [ref=e412]: "#2563eb"
+                - generic [ref=e413]:
+                  - generic [ref=e414]: Custom color
+                  - generic [ref=e415]: Open the color wheel or enter a hex value
+                - textbox "Hex color" [ref=e416]:
+                  - /placeholder: "#2563EB"
+          - generic [ref=e417]:
+            - generic [ref=e418]: Secondary color optional
+            - generic [ref=e419]:
+              - 'button "Secondary #0f766e" [ref=e420] [cursor=pointer]'
+              - 'button "Secondary #7c3aed" [ref=e422] [cursor=pointer]'
+              - 'button "Secondary #d97706" [ref=e423] [cursor=pointer]'
+              - 'button "Secondary #be123c" [ref=e424] [cursor=pointer]'
+              - 'button "Secondary #475569" [ref=e425] [cursor=pointer]'
+              - textbox "Custom secondary color" [ref=e426]: "#0f766e"
+        - generic "Brand preview" [ref=e427]:
+          - text: Live preview
+          - generic [ref=e428]:
+            - generic [ref=e429]:
+              - generic [ref=e430]: AF
+              - generic [ref=e431]: Ada Farmers Cooperative
+            - generic [ref=e435]:
+              - generic [ref=e436]: Dashboard
+              - generic [ref=e437]:
+                - generic [ref=e438]: Primary
+                - generic [ref=e439]: Secondary
+              - button "Primary action" [ref=e440] [cursor=pointer]
+      - generic [ref=e444]:
+        - button "Back" [ref=e445] [cursor=pointer]
+        - button "Continue" [ref=e447] [cursor=pointer]
+    - paragraph [ref=e103]: Everything here stays editable in Settings.

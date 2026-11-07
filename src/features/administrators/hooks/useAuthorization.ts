@@ -21,7 +21,24 @@ export function useAuthorization() {
   const membership = state.communities.find((community) => community.id === organizationId)
 
   // System roles exist in every community, so the membership's role resolves wherever it is used.
-  const roles = useMemo<Role[]>(() => systemRolesFor(organizationId), [organizationId])
+  const roles = useMemo<Role[]>(() => {
+    const systemRoles = systemRolesFor(organizationId)
+    if (!membership?.rolePermissions) return systemRoles
+    return [
+      ...systemRoles,
+      {
+        id: membership.roleId,
+        organizationId,
+        name: membership.roleName,
+        description: "Custom community role.",
+        scope: membership.scope,
+        permissions: membership.rolePermissions,
+        isSystemRole: false,
+        createdAt: "",
+        updatedAt: "",
+      },
+    ]
+  }, [organizationId, membership])
 
   const administrator = useMemo<Administrator>(() => {
     const name = state.session?.name || state.admin.name || "Admin User"

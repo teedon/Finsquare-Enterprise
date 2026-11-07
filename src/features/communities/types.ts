@@ -1,4 +1,4 @@
-import type { EntityId, RoleScope } from "@/types"
+import type { EntityId, Permission, RoleScope } from "@/types"
 
 /**
  * One community the signed-in administrator belongs to, and the role they hold in it.
@@ -25,6 +25,8 @@ export interface CommunityMembership {
   roleId: EntityId
   /** Display name of `roleId`, resolved by the backend so the UI never has to look a role up. */
   roleName: string
+  /** Present for tenant-defined MFI roles, used to drive client-side permission checks. */
+  rolePermissions?: Permission[]
   scope: RoleScope
   branchIds?: EntityId[]
   /** The administrator who created the community and therefore holds its Super Admin role. */

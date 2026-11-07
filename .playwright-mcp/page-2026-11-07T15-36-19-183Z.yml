@@ -1,0 +1,81 @@
+- generic [ref=f5e3]:
+  - complementary [ref=f5e4]:
+    - generic [ref=f5e9]:
+      - generic [ref=f5e10]: FinSquare
+      - generic [ref=f5e11]: ENTERPRISE
+    - button "Switch community. Currently Ada Farmers Coop 153347 as Super Admin" [ref=f5e13] [cursor=pointer]:
+      - generic [ref=f5e14]: AF
+      - generic [ref=f5e15]:
+        - generic [ref=f5e16]: Ada Farmers Coop 153347
+        - generic [ref=f5e17]: Super Admin
+    - navigation [ref=f5e19]:
+      - button "Overview" [ref=f5e21] [cursor=pointer]
+      - generic [ref=f5e24]:
+        - button "Organization" [expanded] [ref=f5e25] [cursor=pointer]
+        - generic [ref=f5e171]:
+          - button "Members" [ref=f5e172] [cursor=pointer]
+          - button "Branches" [ref=f5e174] [cursor=pointer]
+          - button "Groups" [ref=f5e176] [cursor=pointer]
+      - generic [ref=f5e29]:
+        - button "Finance" [expanded] [ref=f5e30] [cursor=pointer]
+        - generic [ref=f5e269]:
+          - button "Contributions" [ref=f5e270] [cursor=pointer]
+          - button "Dues" [ref=f5e272] [cursor=pointer]
+          - button "Payments" [ref=f5e274] [cursor=pointer]
+      - button "Wallet" [ref=f5e35] [cursor=pointer]
+      - generic [ref=f5e38]:
+        - button "Loans" [expanded] [ref=f5e39] [cursor=pointer]
+        - generic [ref=f5e380]:
+          - button "Overview" [active] [ref=f5e381] [cursor=pointer]
+          - button "Applications" [ref=f5e383] [cursor=pointer]
+          - button "Active loans" [ref=f5e385] [cursor=pointer]
+          - button "Disbursements" [ref=f5e387] [cursor=pointer]
+          - button "Repayments" [ref=f5e389] [cursor=pointer]
+      - button "Communications" [ref=f5e44] [cursor=pointer]
+      - generic [ref=f5e48]:
+        - button "Reports" [ref=f5e49] [cursor=pointer]
+        - button "Settings" [ref=f5e52] [cursor=pointer]
+    - generic [ref=f5e55]:
+      - button "Notifications 3" [ref=f5e56] [cursor=pointer]:
+        - text: Notifications
+        - generic [ref=f5e58]: "3"
+      - generic [ref=f5e59]:
+        - generic [ref=f5e60]: AO
+        - generic [ref=f5e61]:
+          - generic [ref=f5e62]: Ada Okoye
+          - generic [ref=f5e63]: Super Admin
+        - button "Account menu" [ref=f5e64] [cursor=pointer]
+  - main [ref=f5e67]:
+    - status [ref=f5e68]:
+      - generic [ref=f5e70]: Finish setting up your workspace. Connect your corporate account to enable live money movement.
+      - button "Complete account setup" [ref=f5e71] [cursor=pointer]
+    - navigation "Breadcrumb" [ref=f5e179]:
+      - list [ref=f5e180]:
+        - listitem [ref=f5e181]:
+          - button "Home" [ref=f5e182] [cursor=pointer]
+        - listitem [ref=f5e391]:
+          - generic [ref=f5e392]: Overview
+    - generic [ref=f5e393]:
+      - generic [ref=f5e394]:
+        - generic [ref=f5e395]:
+          - generic [ref=f5e396]: Loans
+          - generic [ref=f5e397]: 0 active · ₦0 outstanding
+        - button "Create loan type" [ref=f5e399] [cursor=pointer]
+      - generic [ref=f5e401]:
+        - button "Guarantors" [ref=f5e402] [cursor=pointer]
+        - button "Recovery" [ref=f5e403] [cursor=pointer]
+        - button "Loan types" [ref=f5e404] [cursor=pointer]
+      - generic [ref=f5e405]:
+        - generic [ref=f5e406]:
+          - generic [ref=f5e407]:
+            - generic [ref=f5e408]: Applications requiring action
+            - generic [ref=f5e409]: Oldest first
+          - button "View all" [ref=f5e410] [cursor=pointer]
+        - generic [ref=f5e411]: No applications waiting
+      - generic [ref=f5e414]:
+        - generic [ref=f5e415]:
+          - generic [ref=f5e416]:
+            - generic [ref=f5e417]: Overdue repayments
+            - generic [ref=f5e418]: Highest days overdue first
+          - button "Recovery" [ref=f5e419] [cursor=pointer]
+        - generic [ref=f5e420]: Nothing overdue — every repayment is on time.

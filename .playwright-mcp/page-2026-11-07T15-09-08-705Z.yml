@@ -1,0 +1,69 @@
+- generic [ref=f4e375]:
+  - complementary [ref=f4e376]:
+    - generic [ref=f4e381]:
+      - generic [ref=f4e382]: FinSquare
+      - generic [ref=f4e383]: ENTERPRISE
+    - button "Switch community. Currently Ada Farmers Coop 153347 as Super Admin" [ref=f4e385] [cursor=pointer]:
+      - generic [ref=f4e386]: AF
+      - generic [ref=f4e387]:
+        - generic [ref=f4e388]: Ada Farmers Coop 153347
+        - generic [ref=f4e389]: Super Admin
+    - navigation [ref=f4e391]:
+      - button "Overview" [ref=f4e393] [cursor=pointer]
+      - generic [ref=f4e396]:
+        - button "Organization" [expanded] [ref=f4e397] [cursor=pointer]
+        - generic [ref=f4e543]:
+          - button "Members" [active] [ref=f4e544] [cursor=pointer]
+          - button "Branches" [ref=f4e546] [cursor=pointer]
+          - button "Groups" [ref=f4e548] [cursor=pointer]
+      - button "Finance" [ref=f4e402] [cursor=pointer]
+      - button "Wallet" [ref=f4e407] [cursor=pointer]
+      - button "Loans" [ref=f4e411] [cursor=pointer]
+      - button "Communications" [ref=f4e416] [cursor=pointer]
+      - generic [ref=f4e420]:
+        - button "Reports" [ref=f4e421] [cursor=pointer]
+        - button "Settings" [ref=f4e424] [cursor=pointer]
+    - generic [ref=f4e427]:
+      - button "Notifications 3" [ref=f4e428] [cursor=pointer]:
+        - text: Notifications
+        - generic [ref=f4e430]: "3"
+      - generic [ref=f4e431]:
+        - generic [ref=f4e432]: AO
+        - generic [ref=f4e433]:
+          - generic [ref=f4e434]: Ada Okoye
+          - generic [ref=f4e435]: Super Admin
+        - button "Account menu" [ref=f4e436] [cursor=pointer]
+  - main [ref=f4e439]:
+    - status [ref=f4e440]:
+      - generic [ref=f4e442]: Finish setting up your workspace. Connect your corporate account to enable live money movement.
+      - button "Complete account setup" [ref=f4e443] [cursor=pointer]
+    - navigation "Breadcrumb" [ref=f4e551]:
+      - list [ref=f4e552]:
+        - listitem [ref=f4e553]:
+          - button "Home" [ref=f4e554] [cursor=pointer]
+        - listitem [ref=f4e556]:
+          - generic [ref=f4e557]: Members
+    - generic [ref=f4e558]:
+      - generic [ref=f4e559]:
+        - generic [ref=f4e560]:
+          - generic [ref=f4e561]: Members
+          - generic [ref=f4e562]: Every member's account, contributions, loans and wallet in one place.
+        - generic [ref=f4e563]:
+          - button "Applications" [ref=f4e564] [cursor=pointer]
+          - button "Import members" [ref=f4e566] [cursor=pointer]
+          - button "Add member" [ref=f4e568] [cursor=pointer]
+      - generic [ref=f4e570]:
+        - generic [ref=f4e571]:
+          - generic [ref=f4e572]:
+            - generic [ref=f4e573]: Search
+            - textbox "Search" [ref=f4e574]:
+              - /placeholder: Search name, member ID or phone
+          - combobox [ref=f4e576]:
+            - option "All members" [selected]
+            - option "Active"
+            - option "Pending"
+            - option "Suspended"
+        - generic [ref=f4e577]:
+          - generic [ref=f4e578]: No members yet
+          - generic [ref=f4e579]: Add a member or import your register to start tracking contributions, dues and loans.
+          - button "Add member" [ref=f4e580] [cursor=pointer]

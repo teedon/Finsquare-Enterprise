@@ -1,0 +1,88 @@
+- generic [ref=f5e3]:
+  - complementary [ref=f5e4]:
+    - generic [ref=f5e9]:
+      - generic [ref=f5e10]: FinSquare
+      - generic [ref=f5e11]: ENTERPRISE
+    - button "Switch community. Currently Ada Farmers Coop 153347 as Super Admin" [ref=f5e13] [cursor=pointer]:
+      - generic [ref=f5e14]: AF
+      - generic [ref=f5e15]:
+        - generic [ref=f5e16]: Ada Farmers Coop 153347
+        - generic [ref=f5e17]: Super Admin
+    - navigation [ref=f5e19]:
+      - button "Overview" [ref=f5e21] [cursor=pointer]
+      - generic [ref=f5e24]:
+        - button "Organization" [expanded] [ref=f5e25] [cursor=pointer]
+        - generic [ref=f5e171]:
+          - button "Members" [ref=f5e172] [cursor=pointer]
+          - button "Branches" [ref=f5e174] [cursor=pointer]
+          - button "Groups" [ref=f5e176] [cursor=pointer]
+      - button "Finance" [ref=f5e30] [cursor=pointer]
+      - button "Wallet" [ref=f5e35] [cursor=pointer]
+      - button "Loans" [ref=f5e39] [cursor=pointer]
+      - button "Communications" [ref=f5e44] [cursor=pointer]
+      - generic [ref=f5e48]:
+        - button "Reports" [ref=f5e49] [cursor=pointer]
+        - button "Settings" [ref=f5e52] [cursor=pointer]
+    - generic [ref=f5e55]:
+      - button "Notifications 3" [ref=f5e56] [cursor=pointer]:
+        - text: Notifications
+        - generic [ref=f5e58]: "3"
+      - generic [ref=f5e59]:
+        - generic [ref=f5e60]: AO
+        - generic [ref=f5e61]:
+          - generic [ref=f5e62]: Ada Okoye
+          - generic [ref=f5e63]: Super Admin
+        - button "Account menu" [ref=f5e64] [cursor=pointer]
+  - main [ref=f5e67]:
+    - status [ref=f5e68]:
+      - generic [ref=f5e70]: Finish setting up your workspace. Connect your corporate account to enable live money movement.
+      - button "Complete account setup" [ref=f5e71] [cursor=pointer]
+    - navigation "Breadcrumb" [ref=f5e179]:
+      - list [ref=f5e180]:
+        - listitem [ref=f5e181]:
+          - button "Home" [ref=f5e182] [cursor=pointer]
+        - listitem [ref=f5e184]:
+          - generic [ref=f5e185]: Branches
+    - generic [ref=f5e186]:
+      - generic [ref=f5e187]:
+        - generic [ref=f5e188]:
+          - generic [ref=f5e189]: ORGANIZATION
+          - generic [ref=f5e190]: Branches
+          - generic [ref=f5e191]: Manage the organization’s structural hierarchy and branch-level access.
+        - generic [ref=f5e192]:
+          - generic [ref=f5e193]:
+            - button "List" [ref=f5e194] [cursor=pointer]
+            - button "Hierarchy" [ref=f5e195] [cursor=pointer]
+          - button "Create branch" [ref=f5e196] [cursor=pointer]
+      - generic [ref=f5e198]:
+        - generic [ref=f5e199]:
+          - generic [ref=f5e200]: Total branches
+          - generic [ref=f5e202]: "0"
+        - generic [ref=f5e203]:
+          - generic [ref=f5e204]: Active branches
+          - generic [ref=f5e206]: "0"
+        - generic [ref=f5e207]:
+          - generic [ref=f5e208]: Members across branches
+          - generic [ref=f5e210]: "0"
+        - generic [ref=f5e211]:
+          - generic [ref=f5e212]: Without administrators
+          - generic [ref=f5e214]: "0"
+      - generic [ref=f5e215]:
+        - generic [ref=f5e216]:
+          - generic [ref=f5e217]:
+            - generic [ref=f5e218]: Search
+            - textbox "Search" [ref=f5e219]:
+              - /placeholder: Search branch name, code, or parent
+          - generic [ref=f5e220]:
+            - combobox [ref=f5e221]:
+              - option "All parents" [selected]
+              - option "No parent"
+            - combobox [ref=f5e222]:
+              - option "All statuses" [selected]
+              - option "active"
+              - option "inactive"
+              - option "archived"
+        - generic [ref=f5e223]:
+          - generic [ref=f5e224]: No branches found
+          - generic [ref=f5e225]: Create a branch or adjust the active filters.
+          - button "Create branch" [ref=f5e226] [cursor=pointer]

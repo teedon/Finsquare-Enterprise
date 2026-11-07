@@ -17,7 +17,13 @@ export class ApiMemberApplicationRepository implements MemberApplicationReposito
   }
 
   async saveForm(_organizationId: string, form: MemberApplicationForm): Promise<void> {
-    await apiClient.post(endpoints.memberApplications.forms, form)
+    // `createdAt` is generated and owned by the backend (`@default(now())` on the
+    // MfiMemberApplicationForm model), and is not part of UpsertMemberApplicationFormDto.
+    // The API rejects unknown properties, so strip the client-only display field.
+    const payload = Object.fromEntries(
+      Object.entries(form).filter(([key]) => key !== "createdAt"),
+    )
+    await apiClient.post(endpoints.memberApplications.forms, payload)
     notify()
   }
 

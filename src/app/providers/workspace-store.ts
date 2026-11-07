@@ -45,6 +45,7 @@ export interface WorkspaceCommunity {
   id: string
   roleId: string
   roleName: string
+  rolePermissions?: CommunityMembership["rolePermissions"]
   isOwner: boolean
   scope: RoleScope
   branchIds?: string[]
@@ -188,6 +189,7 @@ export function sliceFromMembership(membership: CommunityMembership): WorkspaceC
     id: membership.organizationId,
     roleId: membership.roleId,
     roleName: membership.roleName,
+    rolePermissions: membership.rolePermissions,
     isOwner: membership.isOwner,
     scope: membership.scope,
     branchIds: membership.branchIds,
@@ -381,6 +383,7 @@ function syncCommunities(state: WorkspaceStore, memberships: CommunityMembership
         ...community,
         roleId: membership.roleId,
         roleName: membership.roleName,
+        rolePermissions: membership.rolePermissions,
         isOwner: membership.isOwner,
         scope: membership.scope,
         branchIds: membership.branchIds,
@@ -403,6 +406,7 @@ function syncCommunities(state: WorkspaceStore, memberships: CommunityMembership
       before !== undefined &&
       before.roleId === community.roleId &&
       before.roleName === community.roleName &&
+      before.rolePermissions?.join("|") === community.rolePermissions?.join("|") &&
       before.isOwner === community.isOwner &&
       before.scope === community.scope
     )

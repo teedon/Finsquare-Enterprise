@@ -1,0 +1,108 @@
+- generic [ref=f5e3]:
+  - complementary [ref=f5e4]:
+    - generic [ref=f5e9]:
+      - generic [ref=f5e10]: FinSquare
+      - generic [ref=f5e11]: ENTERPRISE
+    - button "Switch community. Currently Ada Farmers Coop 153347 as Super Admin" [ref=f5e13] [cursor=pointer]:
+      - generic [ref=f5e14]: AF
+      - generic [ref=f5e15]:
+        - generic [ref=f5e16]: Ada Farmers Coop 153347
+        - generic [ref=f5e17]: Super Admin
+    - navigation [ref=f5e19]:
+      - button "Overview" [ref=f5e21] [cursor=pointer]
+      - generic [ref=f5e24]:
+        - button "Organization" [expanded] [active] [ref=f5e25] [cursor=pointer]
+        - generic [ref=f5e171]:
+          - button "Members" [ref=f5e172] [cursor=pointer]
+          - button "Branches" [ref=f5e174] [cursor=pointer]
+          - button "Groups" [ref=f5e176] [cursor=pointer]
+      - button "Finance" [ref=f5e30] [cursor=pointer]
+      - button "Wallet" [ref=f5e35] [cursor=pointer]
+      - button "Loans" [ref=f5e39] [cursor=pointer]
+      - button "Communications" [ref=f5e44] [cursor=pointer]
+      - generic [ref=f5e48]:
+        - button "Reports" [ref=f5e49] [cursor=pointer]
+        - button "Settings" [ref=f5e52] [cursor=pointer]
+    - generic [ref=f5e55]:
+      - button "Notifications 3" [ref=f5e56] [cursor=pointer]:
+        - text: Notifications
+        - generic [ref=f5e58]: "3"
+      - generic [ref=f5e59]:
+        - generic [ref=f5e60]: AO
+        - generic [ref=f5e61]:
+          - generic [ref=f5e62]: Ada Okoye
+          - generic [ref=f5e63]: Super Admin
+        - button "Account menu" [ref=f5e64] [cursor=pointer]
+  - main [ref=f5e67]:
+    - status [ref=f5e68]:
+      - generic [ref=f5e70]: Finish setting up your workspace. Connect your corporate account to enable live money movement.
+      - button "Complete account setup" [ref=f5e71] [cursor=pointer]
+    - generic [ref=f5e72]:
+      - generic [ref=f5e73]:
+        - generic [ref=f5e74]:
+          - generic [ref=f5e75]: SATURDAY, 7 NOVEMBER
+          - generic [ref=f5e76]: Overview
+          - generic [ref=f5e77]: Good afternoon, Ada. Here’s what is happening with Ada Farmers Coop 153347.
+        - button "Enrol customer" [ref=f5e79] [cursor=pointer]
+      - generic [ref=f5e83]:
+        - button "Customers 1 None awaiting approval" [ref=f5e84] [cursor=pointer]:
+          - generic [ref=f5e85]: Customers
+          - generic [ref=f5e88]: "1"
+          - generic [ref=f5e89]: None awaiting approval
+        - button "Active loans 0 0 overdue" [ref=f5e90] [cursor=pointer]:
+          - generic [ref=f5e91]: Active loans
+          - generic [ref=f5e94]: "0"
+          - generic [ref=f5e95]: 0 overdue
+        - button "Pending applications 0 0 total applications" [ref=f5e96] [cursor=pointer]:
+          - generic [ref=f5e97]: Pending applications
+          - generic [ref=f5e100]: "0"
+          - generic [ref=f5e101]: 0 total applications
+        - button "Disbursed ₦0 0% repaid" [ref=f5e102] [cursor=pointer]:
+          - generic [ref=f5e103]: Disbursed
+          - generic [ref=f5e106]: ₦0
+          - generic [ref=f5e107]: 0% repaid
+        - button "Repaid ₦0 of disbursed recovered" [ref=f5e108] [cursor=pointer]:
+          - generic [ref=f5e109]: Repaid
+          - generic [ref=f5e112]: ₦0
+          - generic [ref=f5e113]: of disbursed recovered
+        - button "Overdue loans 0 loans in default" [ref=f5e114] [cursor=pointer]:
+          - generic [ref=f5e115]: Overdue loans
+          - generic [ref=f5e118]: "0"
+          - generic [ref=f5e119]: loans in default
+      - generic [ref=f5e120]:
+        - generic [ref=f5e121]:
+          - generic [ref=f5e122]:
+            - generic [ref=f5e123]:
+              - generic [ref=f5e124]: Needs attention
+              - generic [ref=f5e125]: Items that may block Ada Farmers Coop 153347’s progress
+            - generic [ref=f5e126]: 1 open
+          - button "Corporate wallet not connected Financial setup" [ref=f5e128] [cursor=pointer]:
+            - generic [ref=f5e131]:
+              - generic [ref=f5e132]: Corporate wallet not connected
+              - generic [ref=f5e133]: Financial setup
+        - generic [ref=f5e135]:
+          - generic [ref=f5e137]:
+            - generic [ref=f5e138]: Quick actions
+            - generic [ref=f5e139]: Common organization tasks
+          - generic [ref=f5e140]:
+            - button "Enrol customer" [ref=f5e141] [cursor=pointer]
+            - button "Review applications" [ref=f5e143] [cursor=pointer]
+            - button "Create loan product" [ref=f5e145] [cursor=pointer]
+            - button "Invite staff" [ref=f5e147] [cursor=pointer]
+            - button "Manage wallet" [ref=f5e149] [cursor=pointer]
+          - generic [ref=f5e151]:
+            - generic [ref=f5e154]:
+              - generic [ref=f5e155]: Financial actions are not enabled yet
+              - generic [ref=f5e156]: Configuration is saved, but no money can move yet.
+            - button "View requirements" [ref=f5e157] [cursor=pointer]
+      - generic [ref=f5e158]:
+        - generic [ref=f5e159]:
+          - generic [ref=f5e160]:
+            - generic [ref=f5e161]: Latest customers
+            - generic [ref=f5e162]: The most recent customers enrolled at Ada Farmers Coop 153347
+          - button "View all" [ref=f5e163] [cursor=pointer]
+        - generic [ref=f5e164]:
+          - generic [ref=f5e167]:
+            - generic [ref=f5e168]: FinSquare System
+            - generic [ref=f5e169]: Active
+          - generic [ref=f5e170]: 7 Nov 2026

@@ -1,0 +1,26 @@
+- generic [ref=f4e3]:
+  - banner [ref=f4e4]:
+    - generic [ref=f4e8]:
+      - generic [ref=f4e9]: FinSquare
+      - generic [ref=f4e10]: ENTERPRISE
+    - generic [ref=f4e11]: Sign in to your workspace
+  - main [ref=f4e12]:
+    - generic [ref=f4e13]:
+      - generic [ref=f4e14]: Administrator access
+      - generic [ref=f4e19]:
+        - heading "Log in to FinSquare" [level=1] [ref=f4e20]
+        - paragraph [ref=f4e21]: Use the administrator account for your organization.
+      - generic [ref=f4e22]:
+        - generic [ref=f4e23]:
+          - generic [ref=f4e25]:
+            - generic [ref=f4e26]: Work email
+            - textbox "Work email" [ref=f4e27]:
+              - /placeholder: you@organization.com
+          - generic [ref=f4e29]:
+            - generic [ref=f4e30]: Password
+            - textbox "Password" [ref=f4e31]:
+              - /placeholder: At least 6 characters
+        - button "Log in" [ref=f4e33] [cursor=pointer]
+      - paragraph [ref=f4e35]:
+        - text: New here?
+        - button "Create an account" [ref=f4e36] [cursor=pointer]

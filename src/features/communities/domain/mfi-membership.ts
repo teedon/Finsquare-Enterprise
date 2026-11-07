@@ -11,6 +11,10 @@ export interface MfiCommunityIdentity {
   description?: string | null
   enabledFeatures?: string[]
   details?: { profile?: Record<string, unknown>; corporate?: Record<string, unknown> } | null
+  mfiCustomRoleId?: string | null
+  mfiCustomRoleName?: string | null
+  mfiCustomRolePermissions?: string[]
+  mfiCustomRoleScope?: string | null
 }
 
 /**
@@ -47,9 +51,12 @@ export function mapMfiMembership(community: MfiCommunityIdentity, mfiRole: MfiRo
     legalName: str(profile.legalName),
     accent: community.color ?? (str(profile.secondaryColor) || "blue"),
     profile: Object.keys(profile).length ? profile : undefined,
-    roleId: role.roleId,
-    roleName: role.roleName,
-    scope: "organization",
+    roleId: community.mfiCustomRoleId ?? role.roleId,
+    roleName: community.mfiCustomRoleId ? (community.mfiCustomRoleName ?? "Custom role") : role.roleName,
+    rolePermissions: community.mfiCustomRoleId
+      ? (community.mfiCustomRolePermissions as CommunityMembership["rolePermissions"])
+      : undefined,
+    scope: community.mfiCustomRoleScope === "branch" ? "branch" : "organization",
     isOwner: role.isOwner,
   }
 }

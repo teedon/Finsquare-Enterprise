@@ -13,6 +13,10 @@ interface MfiLoginData {
     lastName?: string | null
     fullName?: string | null
     mfiRole: MfiRole
+    mfiCustomRoleId?: string | null
+    mfiCustomRoleName?: string | null
+    mfiCustomRolePermissions?: string[]
+    mfiCustomRoleScope?: string | null
   }
   community: MfiCommunity | null
 }
@@ -26,6 +30,10 @@ interface MfiCommunitySelectionData {
     color?: string | null
     description: string | null
     mfiRole: MfiRole | null
+    mfiCustomRoleId?: string | null
+    mfiCustomRoleName?: string | null
+    mfiCustomRolePermissions?: string[]
+    mfiCustomRoleScope?: string | null
   }>
 }
 
@@ -51,7 +59,20 @@ function mapAuthResult(data: MfiLoginData): AuthResult {
     signedInAt: new Date().toISOString(),
     mustChangePassword: data.mustChangePassword,
   }
-  const memberships = data.community ? [mapMfiMembership(data.community, data.user.mfiRole)] : []
+  const memberships = data.community
+    ? [
+        mapMfiMembership(
+          {
+            ...data.community,
+            mfiCustomRoleId: data.user.mfiCustomRoleId,
+            mfiCustomRoleName: data.user.mfiCustomRoleName,
+            mfiCustomRolePermissions: data.user.mfiCustomRolePermissions,
+            mfiCustomRoleScope: data.user.mfiCustomRoleScope,
+          },
+          data.user.mfiRole,
+        ),
+      ]
+    : []
   return { session, accessToken: data.token, memberships }
 }
 
@@ -63,19 +84,17 @@ function mapAuthResult(data: MfiLoginData): AuthResult {
  */
 export class ApiAuthRepository implements AuthRepository {
   async signIn(credentials: SignInCredentials): Promise<AuthOutcome> {
-    const response = await apiClient.post<MfiLoginData | MfiCommunitySelectionData>(
-      endpoints.auth.login,
-      { email: credentials.email, password: credentials.password, communityId: credentials.communityId },
-    )
+    const response = await apiClient.post<MfiLoginData | MfiCommunitySelectionData>(endpoints.auth.login, {
+      email: credentials.email,
+      password: credentials.password,
+      communityId: credentials.communityId,
+    })
 
     if ("requiresCommunitySelection" in response && response.requiresCommunitySelection) {
       return {
         status: "needs-selection",
         communities: response.availableCommunities.map((community) =>
-          mapMfiMembership(
-            { id: community.communityId, ...community },
-            community.mfiRole ?? "SUPPORT",
-          ),
+          mapMfiMembership({ id: community.communityId, ...community }, community.mfiRole ?? "SUPPORT"),
         ),
       }
     }
@@ -107,4 +126,3 @@ export class ApiAuthRepository implements AuthRepository {
     // The backend issues stateless JWTs and has no logout endpoint; the token is cleared client-side.
   }
 }
-

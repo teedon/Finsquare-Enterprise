@@ -1,14 +1,9 @@
 import { useState } from "react"
+import { env } from "@/app/config/env"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
 import { Check, ChevronRight, Plus, ShieldCheck } from "@/icons"
 import { ErrorState, LoadingState } from "@/components/feedback/AsyncState"
-import {
-  Button,
-  Field,
-  Modal,
-  SectionHeader,
-  SelectField,
-} from "@/components/ui"
+import { Button, Field, Modal, SectionHeader, SelectField } from "@/components/ui"
 import { useAdministrators } from "../hooks/useAdministrators"
 import { useAuthorization } from "../hooks/useAuthorization"
 import { useWorkspace } from "@/app/providers/WorkspaceProvider"
@@ -25,34 +20,22 @@ export function RolesPage({
   notify: (message: string) => void
 }) {
   const organizationId = useOrganizationId()
-  const { roles, status, error, retry, updateRole, createRole } =
-    useAdministrators(organizationId)
+  const { roles, status, error, retry, updateRole, createRole } = useAdministrators(organizationId)
   const { can } = useAuthorization()
   const { enabledModules } = useWorkspace()
   const selected = roles.find((role) => role.id === selectedRoleId) ?? roles[0]
   const [draft, setDraft] = useState<Role | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [newRoleName, setNewRoleName] = useState("")
-  const [newRoleScope, setNewRoleScope] =
-    useState<Role["scope"]>("organization")
+  const [newRoleScope, setNewRoleScope] = useState<Role["scope"]>("organization")
   const role = draft?.id === selected?.id ? draft : selected
 
   if (status === "loading") return <LoadingState label="Loading roles…" />
-  if (status === "error")
-    return (
-      <ErrorState
-        message={error ?? "Roles could not be loaded."}
-        retry={retry}
-      />
-    )
+  if (status === "error") return <ErrorState message={error ?? "Roles could not be loaded."} retry={retry} />
   if (!role) return null
 
   const togglePermission = (permission: Permission) => {
-    if (
-      !can("roles.update") ||
-      (role.isSystemRole && role.name === "Super Admin")
-    )
-      return
+    if (!can("roles.update") || role.isSystemRole) return
     setDraft({
       ...role,
       permissions: role.permissions.includes(permission)
@@ -70,17 +53,13 @@ export function RolesPage({
         actions={
           <>
             {can("roles.create") && (
-              <Button
-                variant="secondary"
-                icon={Plus}
-                onClick={() => setCreateOpen(true)}
-              >
+              <Button variant="secondary" icon={Plus} onClick={() => setCreateOpen(true)}>
                 Create role
               </Button>
             )}
             {can("roles.update") && (
               <Button
-                disabled={!draft}
+                disabled={!draft || draft.isSystemRole}
                 onClick={() =>
                   draft &&
                   void updateRole(draft).then(() => {
@@ -146,18 +125,11 @@ export function RolesPage({
                         type="button"
                         key={permission}
                         className={enabled ? "enabled" : ""}
-                        disabled={
-                          !can("roles.update") ||
-                          (role.isSystemRole && role.name === "Super Admin")
-                        }
+                        disabled={!can("roles.update") || role.isSystemRole}
                         onClick={() => togglePermission(permission)}
                       >
-                        <span className="permission-check">
-                          {enabled && <Check size={13} />}
-                        </span>
-                        <span>
-                          {permission.split(".")[1].replace(/_/g, " ")}
-                        </span>
+                        <span className="permission-check">{enabled && <Check size={13} />}</span>
+                        <span>{permission.split(".")[1].replace(/_/g, " ")}</span>
                       </button>
                     )
                   })}
@@ -171,15 +143,11 @@ export function RolesPage({
         <Modal title="Create role" onClose={() => setCreateOpen(false)}>
           <div className="wizard-body">
             <div className="form-grid">
-              <Field
-                label="Role name"
-                value={newRoleName}
-                onChange={setNewRoleName}
-              />
+              <Field label="Role name" value={newRoleName} onChange={setNewRoleName} />
               <SelectField
                 label="Scope"
                 value={newRoleScope}
-                options={["organization", "branch"]}
+                options={env.VITE_ENABLE_MOCKS ? ["organization", "branch"] : ["organization"]}
                 onChange={(value) => setNewRoleScope(value as Role["scope"])}
               />
             </div>

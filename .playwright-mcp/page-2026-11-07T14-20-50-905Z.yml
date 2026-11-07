@@ -1,0 +1,130 @@
+- generic [ref=e37]:
+  - banner [ref=e38]:
+    - generic [ref=e42]:
+      - generic [ref=e43]: FinSquare
+      - generic [ref=e44]: ENTERPRISE
+    - generic [ref=e45]:
+      - text: Already have an account?
+      - button "Log in" [ref=e46] [cursor=pointer]
+  - main [ref=e47]:
+    - list "Setup progress" [ref=e48]:
+      - listitem [ref=e49]:
+        - button "Create account" [ref=e104] [cursor=pointer]
+      - listitem [ref=e53]:
+        - button "Set up organization" [ref=e449] [cursor=pointer]
+      - listitem [ref=e57]:
+        - button "Organization details" [ref=e513] [cursor=pointer]
+      - listitem [ref=e61]:
+        - button "4 Corporate account" [ref=e376] [cursor=pointer]:
+          - generic [ref=e63]: "4"
+          - generic [ref=e64]: Corporate account
+      - listitem [ref=e65]:
+        - button "5 Finish" [disabled] [ref=e66]:
+          - generic [ref=e67]: "5"
+          - generic [ref=e68]: Finish
+    - generic [ref=e515]:
+      - generic [ref=e516]:
+        - generic [ref=e517]: Optional — can be done later
+        - generic [ref=e518]: Step 4 of 5
+      - heading "Corporate account & wallet Optional" [level=1] [ref=e519]:
+        - text: Corporate account & wallet
+        - generic [ref=e520]: Optional
+      - paragraph [ref=e521]: Connect a corporate account when you are ready to move real money.
+      - generic [ref=e522]: Completing this step lets FinSquare open your organization's corporate account and wallet, which is required for real collections, loan disbursements and transfers. You can skip it now and connect the account later from Settings.
+      - generic [ref=e525]:
+        - generic [ref=e526]:
+          - heading "Business" [level=4] [ref=e527]
+          - generic [ref=e528]:
+            - generic [ref=e530]:
+              - generic [ref=e531]: Corporate / business name
+              - textbox "Corporate / business name" [ref=e532]
+            - generic [ref=e534]:
+              - generic [ref=e535]: Registration number
+              - textbox "Registration number" [ref=e536]:
+                - /placeholder: e.g. RC-1048223
+            - generic [ref=e538]:
+              - generic [ref=e539]: Business address
+              - textbox "Business address" [ref=e540]
+            - generic [ref=e542]:
+              - generic [ref=e543]: Account holder name
+              - textbox "Account holder name" [ref=e544]
+        - generic [ref=e545]:
+          - heading "Authorized representative" [level=4] [ref=e546]
+          - generic [ref=e547]:
+            - generic [ref=e549]:
+              - generic [ref=e550]: Full name
+              - textbox "Full name" [ref=e551]
+            - generic [ref=e553]:
+              - generic [ref=e554]: Role
+              - textbox "Role" [ref=e555]:
+                - /placeholder: e.g. Treasurer
+            - generic [ref=e557]:
+              - generic [ref=e558]: Phone
+              - textbox "Phone" [ref=e559]:
+                - /placeholder: "+234"
+            - generic [ref=e561]:
+              - generic [ref=e562]: Email
+              - textbox "Email" [ref=e563]
+            - generic [ref=e564]:
+              - generic [ref=e565]: Identification type
+              - combobox "Identification type" [ref=e566]:
+                - option "National ID (NIN)" [selected]
+                - option "International passport"
+                - option "Driver's licence"
+                - option "Voter's card"
+            - generic [ref=e568]:
+              - generic [ref=e569]: ID number
+              - textbox "ID number" [ref=e570]
+        - generic [ref=e571]:
+          - heading "Settlement account" [level=4] [ref=e572]
+          - generic [ref=e573]:
+            - generic [ref=e574]:
+              - generic [ref=e575]: Bank
+              - combobox "Bank" [ref=e576]:
+                - option "9PSB" [selected]
+                - option "Access Bank"
+                - option "Citibank Nigeria"
+                - option "Ecobank Nigeria"
+                - option "Fidelity Bank"
+                - option "First Bank of Nigeria"
+                - option "First City Monument Bank"
+                - option "Guaranty Trust Bank"
+                - option "Keystone Bank"
+                - option "Kuda Microfinance Bank"
+                - option "Moniepoint MFB"
+                - option "OPay"
+                - option "Polaris Bank"
+                - option "Stanbic IBTC Bank"
+                - option "Sterling Bank"
+                - option "Union Bank"
+                - option "United Bank for Africa"
+                - option "Wema Bank"
+                - option "Zenith Bank"
+            - generic [ref=e578]:
+              - generic [ref=e579]: Account number
+              - textbox "Account number" [ref=e580]:
+                - /placeholder: 10 digits
+            - generic [ref=e582]:
+              - generic [ref=e583]: Account name
+              - textbox "Account name" [ref=e584]
+        - generic [ref=e585]:
+          - heading "Verification documents (you can upload these later)" [level=4] [ref=e586]
+          - generic [ref=e587]:
+            - generic [ref=e588] [cursor=pointer]:
+              - generic [ref=e591]: Certificate of registration
+              - generic [ref=e592]: Pending
+            - generic [ref=e593] [cursor=pointer]:
+              - generic [ref=e596]: Proof of business address
+              - generic [ref=e597]: Pending
+            - generic [ref=e598] [cursor=pointer]:
+              - generic [ref=e601]: Representative ID
+              - generic [ref=e602]: Pending
+            - generic [ref=e603] [cursor=pointer]:
+              - generic [ref=e606]: Board or executive resolution
+              - generic [ref=e607]: Pending
+      - generic [ref=e608]:
+        - button "Back" [ref=e609] [cursor=pointer]
+        - generic [ref=e611]:
+          - button "Skip for now" [ref=e612] [cursor=pointer]
+          - button "Save and continue" [ref=e613] [cursor=pointer]
+    - paragraph [ref=e103]: Everything here stays editable in Settings.

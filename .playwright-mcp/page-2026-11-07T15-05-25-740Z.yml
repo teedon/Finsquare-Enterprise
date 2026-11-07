@@ -1,0 +1,43 @@
+- generic [ref=f4e375]:
+  - complementary [ref=f4e376]:
+    - generic [ref=f4e381]:
+      - generic [ref=f4e382]: FinSquare
+      - generic [ref=f4e383]: ENTERPRISE
+    - button "Switch community. Currently Ada Farmers Coop 153347 as Super Admin" [ref=f4e385] [cursor=pointer]:
+      - generic [ref=f4e386]: AF
+      - generic [ref=f4e387]:
+        - generic [ref=f4e388]: Ada Farmers Coop 153347
+        - generic [ref=f4e389]: Super Admin
+    - navigation [ref=f4e391]:
+      - button "Overview" [ref=f4e393] [cursor=pointer]
+      - button "Organization" [ref=f4e397] [cursor=pointer]
+      - button "Finance" [ref=f4e402] [cursor=pointer]
+      - button "Wallet" [ref=f4e407] [cursor=pointer]
+      - button "Loans" [ref=f4e411] [cursor=pointer]
+      - button "Communications" [ref=f4e416] [cursor=pointer]
+      - generic [ref=f4e420]:
+        - button "Reports" [ref=f4e421] [cursor=pointer]
+        - button "Settings" [ref=f4e424] [cursor=pointer]
+    - generic [ref=f4e427]:
+      - button "Notifications 3" [ref=f4e428] [cursor=pointer]:
+        - text: Notifications
+        - generic [ref=f4e430]: "3"
+      - generic [ref=f4e431]:
+        - generic [ref=f4e432]: AO
+        - generic [ref=f4e433]:
+          - generic [ref=f4e434]: Ada Okoye
+          - generic [ref=f4e435]: Super Admin
+        - button "Account menu" [ref=f4e436] [cursor=pointer]
+  - main [ref=f4e439]:
+    - status [ref=f4e440]:
+      - generic [ref=f4e442]: Finish setting up your workspace. Connect your corporate account to enable live money movement.
+      - button "Complete account setup" [ref=f4e443] [cursor=pointer]
+    - generic [ref=f4e444]:
+      - generic [ref=f4e445]:
+        - generic [ref=f4e446]:
+          - generic [ref=f4e447]: SATURDAY, 7 NOVEMBER
+          - generic [ref=f4e448]: Overview
+          - generic [ref=f4e449]: Good afternoon, Ada. Here’s what is happening with Ada Farmers Coop 153347.
+        - button "Enrol customer" [ref=f4e451] [cursor=pointer]
+      - status [ref=f4e453]:
+        - generic [ref=f4e454]: Loading overview…

@@ -1,3 +1,4 @@
 {
-    "chat.mcp.access": "all"
+    "chat.mcp.access": "all",
+    "python.terminal.useEnvFile": true
 }

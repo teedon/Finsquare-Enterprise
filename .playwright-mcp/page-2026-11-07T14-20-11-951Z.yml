@@ -1,0 +1,88 @@
+- generic [ref=e37]:
+  - banner [ref=e38]:
+    - generic [ref=e42]:
+      - generic [ref=e43]: FinSquare
+      - generic [ref=e44]: ENTERPRISE
+    - generic [ref=e45]:
+      - text: Already have an account?
+      - button "Log in" [ref=e46] [cursor=pointer]
+  - main [ref=e47]:
+    - list "Setup progress" [ref=e48]:
+      - listitem [ref=e49]:
+        - button "Create account" [ref=e104] [cursor=pointer]
+      - listitem [ref=e53]:
+        - button "Set up organization" [ref=e449] [cursor=pointer]
+      - listitem [ref=e57]:
+        - button "3 Organization details" [ref=e375] [cursor=pointer]:
+          - generic [ref=e59]: "3"
+          - generic [ref=e60]: Organization details
+      - listitem [ref=e61]:
+        - button "4 Corporate account" [disabled] [ref=e376]:
+          - generic [ref=e63]: "4"
+          - generic [ref=e64]: Corporate account
+      - listitem [ref=e65]:
+        - button "5 Finish" [disabled] [ref=e66]:
+          - generic [ref=e67]: "5"
+          - generic [ref=e68]: Finish
+    - generic [ref=e451]:
+      - generic [ref=e452]:
+        - generic [ref=e453]: Registration and contacts
+        - generic [ref=e454]: Step 3 of 5
+      - heading "A few organization details" [level=1] [ref=e455]
+      - paragraph [ref=e456]: These appear on member records, statements and compliance documents. Anything marked optional can be skipped.
+      - generic [ref=e457]:
+        - generic [ref=e459]:
+          - generic [ref=e460]: Registered / business name
+          - textbox "Registered / business name" [ref=e461]: Ada Farmers Cooperative Ltd
+        - generic [ref=e463]:
+          - generic [ref=e464]: Registration number (optional)
+          - textbox "Registration number (optional)" [ref=e465]:
+            - /placeholder: e.g. RC-1048223
+        - generic [ref=e467]:
+          - generic [ref=e468]: Organization email
+          - textbox "Organization email" [ref=e469]: ada.okoye+1202@example.com
+        - generic [ref=e471]:
+          - generic [ref=e472]: Organization phone
+          - textbox "Organization phone" [ref=e473]:
+            - /placeholder: "+234"
+            - text: "+2348012345678"
+        - generic [ref=e475]:
+          - generic [ref=e476]: Website (optional)
+          - textbox "Website (optional)" [ref=e477]:
+            - /placeholder: www.example.org
+        - generic [ref=e478]:
+          - generic [ref=e479]: Country
+          - combobox "Country" [ref=e480]:
+            - option "Nigeria" [selected]
+            - option "Ghana"
+            - option "Kenya"
+            - option "South Africa"
+            - option "Other"
+        - generic [ref=e482]:
+          - generic [ref=e483]: State
+          - textbox "State" [ref=e484]: Lagos
+        - generic [ref=e486]:
+          - generic [ref=e487]: City
+          - textbox "City" [ref=e488]: Ikeja
+        - generic [ref=e490]:
+          - generic [ref=e491]: Physical address
+          - textbox "Physical address" [ref=e492]: 12 Market Road
+        - generic [ref=e494]:
+          - generic [ref=e495]: Year established (optional)
+          - textbox "Year established (optional)" [ref=e496]:
+            - /placeholder: e.g. 2014
+        - generic [ref=e498]:
+          - generic [ref=e499]: Number of members (optional)
+          - textbox "Number of members (optional)" [ref=e500]
+        - generic [ref=e502]:
+          - generic [ref=e503]: Primary area of operation (optional)
+          - textbox "Primary area of operation (optional)" [ref=e504]:
+            - /placeholder: e.g. Agriculture
+      - generic [ref=e505]:
+        - generic [ref=e506]: Description (optional)
+        - textbox "Description (optional)" [ref=e507]:
+          - /placeholder: What does your organization do?
+      - generic [ref=e508]:
+        - button "Back" [ref=e509] [cursor=pointer]
+        - button "Save and continue" [ref=e511] [cursor=pointer]
+    - paragraph [ref=e103]: Everything here stays editable in Settings.
