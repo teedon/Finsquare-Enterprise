@@ -75,6 +75,7 @@ export const PERMISSIONS = [
   "wallet.manage_access",
   "wallet.manage_limits",
   "wallet.manage",
+  "wallet.manage_settlement",
   "communication.view",
   "communication.send",
   "communication.export",

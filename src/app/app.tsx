@@ -42,6 +42,7 @@ import Breadcrumbs from "@/components/navigation/Breadcrumbs"
 import SettingsTabs from "@/features/settings/components/SettingsTabs"
 import { settingsTabFor } from "@/app/config/navigation"
 import { CompliancePage, CorporatePage } from "@/features/compliance/components/CompliancePages"
+import WalletSettlementPage from "@/features/wallet-settlement/components/WalletSettlementPage"
 import { useCompliance } from "@/features/compliance/hooks/useCompliance"
 import { useCorporateAccount } from "@/features/corporate-account/hooks/useCorporateAccount"
 import { DuesCreatePage, DuesDetailPage, DuesOverviewPage } from "@/features/dues"
@@ -341,6 +342,8 @@ export default function FinSquareApp() {
         notify={notify}
       />
     )
+  } else if (view === "settlement") {
+    content = <WalletSettlementPage notify={notify} />
   } else if (view === "organization") {
     content = (
       <OrganizationProfilePage

@@ -118,6 +118,14 @@ export const endpoints = {
     workspace: "/enterprise/wallet",
     withdraw: "/wallet/withdraw",
   },
+  /** Customer-wallet settlement policy + manual settlement (Enterprise). */
+  walletSettlement: {
+    policy: "/enterprise/wallet-settlement",
+    customers: "/enterprise/wallet-settlement/customers",
+    customer: (userId: string) => `/enterprise/wallet-settlement/customers/${userId}`,
+    settleLoans: (userId: string) => `/enterprise/wallet-settlement/customers/${userId}/loans`,
+    distribute: (userId: string) => `/enterprise/wallet-settlement/customers/${userId}/distribute`,
+  },
   forms: {
     /** The shared question library: one library per organization, used by every form builder. */
     questionLibrary: (organizationId: string) => `/organizations/${organizationId}/question-library`,

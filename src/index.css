@@ -1014,3 +1014,32 @@ html[data-theme="dark"] .toast svg { color: #0f6b4d; }
 
 /* On a phone a choice has the width to fill, so it should use it. */
 @media (max-width: 600px) { .choice { max-width: none; } }
+
+.settlement-panel { margin-bottom: 18px; }
+.settlement-row { display: flex; align-items: center; gap: 14px; padding: 18px; }
+.settlement-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 10px; background: var(--blue-soft); color: var(--blue); flex: 0 0 auto; }
+.settlement-copy { flex: 1; min-width: 0; }
+.settlement-copy b, .settlement-copy span { display: block; }
+.settlement-copy b { font-size: 14px; }
+.settlement-copy span { color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 4px; }
+.settlement-note { margin: 0 18px 16px; padding: 11px 13px; border-radius: 8px; color: var(--muted); background: var(--surface-soft); font-size: 12px; line-height: 1.5; }
+.settlement-distribution { overflow: hidden; }
+.settlement-customer-picker { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(260px, 1.4fr); gap: 14px; padding: 16px; }
+.settlement-wallet-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 16px 16px; }
+.settlement-wallet-summary > div { display: flex; flex-direction: column; gap: 4px; padding: 13px; border: 1px solid var(--line); border-radius: 9px; }
+.settlement-wallet-summary span, .settlement-wallet-summary small { color: var(--muted); font-size: 11px; }
+.settlement-wallet-summary b { font-size: 15px; }
+.settlement-obligations { border-top: 1px solid var(--line); }
+.settlement-obligation { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 260px); align-items: center; gap: 20px; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+.settlement-obligation > div { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 7px 10px; }
+.settlement-obligation > div small { grid-column: 2; color: var(--muted); font-size: 11px; }
+.settlement-obligation > div b { font-size: 13px; }
+.settlement-submit { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 16px; }
+.settlement-submit > span { color: var(--muted); font-size: 12px; }
+@media (max-width: 650px) {
+  .settlement-row { align-items: flex-start; flex-wrap: wrap; }
+  .settlement-copy { flex-basis: calc(100% - 60px); }
+  .settlement-customer-picker, .settlement-wallet-summary { grid-template-columns: 1fr; }
+  .settlement-obligation { grid-template-columns: 1fr; gap: 11px; }
+  .settlement-submit { align-items: stretch; flex-direction: column; }
+}

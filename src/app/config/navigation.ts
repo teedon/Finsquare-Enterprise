@@ -124,6 +124,7 @@ const secondaryAccess: Partial<Record<View, { module?: EnterpriseModuleId; permi
   organization: { nav: "settings" },
   compliance: { nav: "settings" },
   corporate: { nav: "settings" },
+  settlement: { permission: "wallet.manage_settlement", nav: "settings" },
   // Starting a community is a platform-level action, not a permission inside one community, so it
   // carries no module or permission of its own.
   "community-create": { nav: "overview" },
@@ -155,6 +156,7 @@ export const SETTINGS_TABS: { id: View; label: string }[] = [
   { id: "roles", label: "Roles & permissions" },
   { id: "modules", label: "Modules" },
   { id: "corporate", label: "Corporate account" },
+  { id: "settlement", label: "Wallet settlement" },
   { id: "compliance", label: "Compliance" },
 ]
 
@@ -175,7 +177,7 @@ const crumbParents: Partial<Record<View, View>> = {
   "dues-create": "dues",
   "member-profile": "members", "group-detail": "groups", "branch-detail": "branches",
   "member-applications": "members", "member-application-detail": "member-applications", "member-application-forms": "members",
-  administrators: "settings", roles: "settings", modules: "settings", compliance: "settings", corporate: "settings", organization: "settings",
+  administrators: "settings", roles: "settings", modules: "settings", compliance: "settings", corporate: "settings", settlement: "settings", organization: "settings",
   "administrator-detail": "administrators", "role-detail": "roles",
   "community-create": "overview",
 }
@@ -189,7 +191,7 @@ const crumbLabels: Partial<Record<View, string>> = {
   "member-profile": "Member", "group-detail": "Group", "branch-detail": "Branch",
   "member-applications": "Applications", "member-application-detail": "Application", "member-application-forms": "Application forms",
   administrators: "Administrators", "administrator-detail": "Administrator", roles: "Roles & permissions", "role-detail": "Role",
-  modules: "Modules", compliance: "Compliance", corporate: "Corporate account & wallet", organization: "Organization details",
+  modules: "Modules", compliance: "Compliance", corporate: "Corporate account & wallet", settlement: "Wallet settlement", organization: "Organization details",
   structure: "Structure", workflows: "Workflows", settings: "Settings",
   "community-create": "Create a community",
 }

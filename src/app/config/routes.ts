@@ -46,6 +46,7 @@ export const viewPaths: Record<View, string> = {
   reports: "/reports",
   compliance: "/compliance",
   corporate: "/corporate-account",
+  settlement: "/settings/settlement",
   settings: "/settings",
   organization: "/settings/organization",
   "community-create": "/communities/new",

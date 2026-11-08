@@ -25,7 +25,7 @@ export const permissionCatalog: PermissionGroup[] = [
   { label: "Loan types", module: "loans", organizationOnly: true, permissions: ["loan_products.view", "loan_products.create", "loan_products.update", "loan_products.activate"] },
   { label: "Guarantors", module: "guarantors", permissions: ["guarantors.view", "guarantors.verify", "guarantors.manage"] },
   { label: "Wallet", module: "wallet", permissions: ["wallet.view", "wallet.view_balance", "wallet.view_transactions", "wallet.fund", "wallet.transfer", "wallet.withdraw", "wallet.disburse", "wallet.approve_disbursement", "wallet.approve_transfer", "wallet.reverse", "wallet.export"] },
-  { label: "Wallet administration", module: "wallet", organizationOnly: true, permissions: ["wallet.manage_access", "wallet.manage_limits", "wallet.manage"] },
+  { label: "Wallet administration", module: "wallet", organizationOnly: true, permissions: ["wallet.manage_access", "wallet.manage_limits", "wallet.manage", "wallet.manage_settlement"] },
   { label: "Communications", module: "communication", permissions: ["communication.view", "communication.send", "communication.export"] },
   { label: "Communication administration", module: "communication", organizationOnly: true, permissions: ["communication.manage_balance"] },
   { label: "Reports", module: "reports", permissions: ["reports.view", "reports.export"] },
