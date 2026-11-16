@@ -54,7 +54,7 @@ export class LoansService {
     notes: string,
     signedForm: boolean,
   ) => this.repo.updateGuarantor(req, status, method, notes, signedForm)
-  disburse = (appIds: string[], method: DisbursementMethod): Promise<Loan[]> => this.repo.disburse(appIds, method)
+  disburse = (appIds: string[], method: DisbursementMethod, pin?: string): Promise<Loan[]> => this.repo.disburse(appIds, method, pin)
   recordRepayment = (input: RecordRepaymentInput): Promise<LoanRepayment> => this.repo.recordRepayment(input)
   startRecovery = (loanId: string) => this.repo.startRecovery(loanId)
   recoveryAction = (c: RecoveryCase, type: string, text: string, status?: RecoveryStatus) => this.repo.recoveryAction(c, type, text, status)

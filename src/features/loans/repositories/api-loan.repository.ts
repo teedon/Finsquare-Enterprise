@@ -15,8 +15,14 @@ import type {
   RecoveryCase,
   RecoverySettings,
   RecoveryStatus,
+  SubmitFormApplicationInput,
+  FormResponse,
+  LoanApplicationForm,
 } from "../types/loan.types"
 import type { LoanRepository } from "./loan.repository"
+import { extractSubmission } from "../domain/loan-forms"
+import { buildPublicPayload } from "../domain/public-application"
+import type { FormVersion } from "../types/form.types"
 
 // ── Backend DTO shapes (after the API client unwraps `{ success, data }`) ─────
 
@@ -109,7 +115,7 @@ interface LoanApplicationDTO {
   creditScore?: number | null
   creditScoreBucket?: string | null
   riskLevel?: string | null
-  guarantors?: Array<{ userId: string; name: string; status: string }>
+  guarantors?: Array<{ id?: string; userId: string; name: string; status: string; guaranteeAmount?: number | null }>
   externalGuarantors?: Array<{
     id: string
     name: string
@@ -119,6 +125,7 @@ interface LoanApplicationDTO {
     address?: string | null
     occupation?: string | null
     isVerified?: boolean
+    guaranteeAmount?: number | null
     verifiedBy?: string | null
     verifiedAt?: string | null
     note?: string | null
@@ -127,6 +134,8 @@ interface LoanApplicationDTO {
   documents?: Array<unknown>
   eligibilityChecks?: Array<unknown>
   revisedOffer?: { amount: number; duration: number; note?: string | null } | null
+  formVersion?: FormVersion
+  formResponse?: Record<string, any> | null
 }
 
 interface ActiveLoanDTO {
@@ -232,6 +241,7 @@ const appStatus = (v: string): LoanApplication["status"] => {
     case "DEFAULTED": return "Rejected"
     case "RESTRUCTURED": return "Approved"
     case "INFO_REQUESTED": return "Under Review"
+    case "UNDER_REVIEW": return "Under Review"
     case "CANCELLED": return "Cancelled"
     case "OFFER_SENT": return "Offer Sent"
     case "OFFER_ACCEPTED": return "Offer Accepted"
@@ -325,18 +335,33 @@ function mapApplication(dto: LoanApplicationDTO): LoanApplication {
     employment: "",
     monthlyIncome: 0,
     documents: (dto.documents ?? []).map((doc, index) => {
-      const raw = doc as { id?: string; name?: string; type?: string; uploadedAt?: string }
+      const raw = doc as { id?: string; name?: string; type?: string; uploadedAt?: string; review?: string }
       const name = raw.name ?? (typeof doc === "string" ? doc : `Document ${index + 1}`)
       return {
         id: raw.id ?? `doc-${dto.id}-${index}`,
         name,
         type: raw.type ?? "Upload",
         uploadedAt: raw.uploadedAt ?? dto.appliedAt,
-        review: "Pending review" as const,
+        review: (raw.review === "Accepted" || raw.review === "Rejected" ? raw.review : "Pending review") as LoanApplication["documents"][number]["review"],
       }
     }),
     eligibility: { outcome: "Eligible", checks: [] },
     activity: [],
+  }
+}
+
+function mapFormResponse(dto: LoanApplicationDTO): FormResponse | null {
+  if (!dto.formVersion || !dto.formResponse) return null
+  const version = dto.formVersion
+  return {
+    id: `${dto.id}-${version.id}`,
+    applicationId: dto.id,
+    formId: dto.loanType?.id ?? "",
+    versionId: version.id,
+    versionNumber: version.version,
+    applicantType: "External",
+    submittedAt: dto.appliedAt,
+    values: dto.formResponse,
   }
 }
 
@@ -491,6 +516,10 @@ export class ApiLoanRepository implements LoanRepository {
     ])
 
     const products = types.map(mapProduct)
+    const formRecords = await Promise.all(types.map(async (type) => ({
+      productId: type.id,
+      saved: await apiClient.get<{ form: LoanApplicationForm; version: FormVersion } | null>(endpoints.loans.enterpriseTypeForm(type.id)),
+    })))
     const applications = applicationsPage.applications.map(mapApplication)
     const loans = enterprise.loans.map(mapLoan)
     const repayments = repaymentsPage.repayments.map(mapRepayment)
@@ -499,12 +528,15 @@ export class ApiLoanRepository implements LoanRepository {
     const settings = enterprise.settings ?? DEFAULT_SETTINGS
 
     const guarantorRequests: GuarantorRequest[] = []
+    const responses = applicationsPage.applications.map(mapFormResponse).filter((r): r is FormResponse => r !== null)
     const borrowers: Borrower[] = []
     const guarantors: Guarantor[] = []
     for (const dto of applicationsPage.applications) {
       borrowers.push(borrowerFromUser(dto.user))
-      for (const g of dto.guarantors ?? [])
+      for (const g of dto.guarantors ?? []) {
         guarantors.push({ id: g.userId, name: g.name, phone: "", relationship: "", type: "Member", memberId: g.userId, occupation: "" })
+        guarantorRequests.push({ id: g.id ?? g.userId, applicationId: dto.id, guarantor: { id: g.userId, name: g.name, phone: "", relationship: "", type: "Member", memberId: g.userId, occupation: "" }, amount: g.guaranteeAmount ?? 0, status: g.status === "verified" || g.status === "accepted" ? "Verified" : "Pending", notes: "", documents: [], updatedAt: "" })
+      }
       for (const g of dto.externalGuarantors ?? []) {
         const guarantor: Guarantor = { id: g.id, name: g.name, phone: g.phone ?? "", relationship: g.relationship ?? "", type: "External", occupation: g.occupation ?? "" }
         guarantors.push(guarantor)
@@ -512,7 +544,7 @@ export class ApiLoanRepository implements LoanRepository {
           id: `ext-${g.id}`,
           applicationId: dto.id,
           guarantor,
-          amount: 0,
+          amount: g.guaranteeAmount ?? 0,
           status: g.isVerified ? "Verified" : "Pending",
           notes: g.note ?? "",
           documents: [],
@@ -530,18 +562,19 @@ export class ApiLoanRepository implements LoanRepository {
       guarantorRequests,
       disbursements,
       recoveryCases,
-      forms: [],
-      responses: [],
+      forms: formRecords.flatMap(({ saved }) => saved?.form ? [saved.form] : []),
+      responses,
       settings,
       borrowers,
       guarantors,
     }
   }
 
-  async saveProduct(product: LoanProduct): Promise<void> {
+  async saveProduct(product: LoanProduct): Promise<LoanProduct> {
     const payload = {
       name: product.name,
       description: product.description,
+      isActive: product.status === "Active",
       minAmount: product.minAmount,
       maxAmount: product.maxAmount,
       minDuration: product.minDuration,
@@ -564,12 +597,16 @@ export class ApiLoanRepository implements LoanRepository {
       requireSavingsHistory: product.eligibility.minSavingsBalance > 0,
     }
     const existing = (await this.load()).products.some((p) => p.id === product.id)
+    let savedProduct = product
     if (existing) {
       await apiClient.put(endpoints.loans.type(product.id), payload)
     } else {
-      await apiClient.post(endpoints.loans.types, payload)
+      const created = await apiClient.post<{ id: string }>(endpoints.loans.types, payload)
+      if (!created?.id) throw new ApiError("The backend did not return the new loan type ID", "server")
+      savedProduct = { ...product, id: created.id }
     }
     this.notify()
+    return savedProduct
   }
 
   async approve(id: string, amount: number, note: string): Promise<void> {
@@ -603,7 +640,8 @@ export class ApiLoanRepository implements LoanRepository {
     void _signedForm
     if (!req.applicationId) return notAvailable("Guarantor verification")
     const verified = status === "Verified" || status === "Accepted"
-    await apiClient.post(endpoints.loans.verifyGuarantor(req.applicationId, req.guarantor.id), {
+    const guarantorId = req.guarantor.type === "Member" ? req.id : req.guarantor.id
+    await apiClient.post(endpoints.loans.verifyGuarantor(req.applicationId, guarantorId), {
       isVerified: verified,
       note: notes || undefined,
     })
@@ -624,12 +662,14 @@ export class ApiLoanRepository implements LoanRepository {
       amount: input.terms.amount,
       duration: input.terms.duration,
       purpose: input.purpose,
-      externalGuarantors: (input.guarantors ?? []).map((g) => ({
+      externalGuarantors: (input.guarantors ?? []).filter((g) => g.guarantor.type === "External").map((g) => ({
         name: g.guarantor.name,
         phone: g.guarantor.phone,
         relationship: g.guarantor.relationship,
         occupation: g.guarantor.occupation,
       })),
+      formVersion: input.response?.version,
+      formResponse: input.response?.values,
     })
     this.notify()
     // The pages re-fetch the dataset after the notify; return a minimal application for the caller.
@@ -652,8 +692,9 @@ export class ApiLoanRepository implements LoanRepository {
       activity: [],
     }
   }
-  async startReview(): Promise<void> {
-    // The backend has no separate "under review" state; PENDING applications are already awaiting review.
+  async startReview(id: string): Promise<void> {
+    await apiClient.post(endpoints.loans.startReview(id))
+    this.notify()
   }
   async reviseOffer(id: string, amount: number, duration: number, note: string): Promise<void> {
     await apiClient.post(endpoints.loans.offer(id), {
@@ -675,14 +716,40 @@ export class ApiLoanRepository implements LoanRepository {
     await apiClient.post(endpoints.loans.cancel(id))
     this.notify()
   }
-  async reviewDocument(): Promise<void> {
-    return notAvailable("Document review")
+  async reviewDocument(appId: string, docId: string, review: "Accepted" | "Rejected"): Promise<void> {
+    await apiClient.patch(endpoints.loans.documentReview(appId, docId), { review })
+    this.notify()
   }
-  async addGuarantor(): Promise<void> {
-    return notAvailable("Adding guarantors")
+  async addGuarantor(applicationId: string, guarantor: Guarantor, amount: number): Promise<void> {
+    await apiClient.post(endpoints.loans.guarantors(applicationId), {
+      type: guarantor.type === "Member" ? "Internal" : "External",
+      userId: guarantor.type === "Member" ? guarantor.memberId ?? guarantor.id : undefined,
+      name: guarantor.name,
+      phone: guarantor.phone,
+      email: guarantor.email,
+      relationship: guarantor.relationship,
+      address: guarantor.address,
+      occupation: guarantor.occupation,
+      amount,
+    })
+    this.notify()
   }
-  async disburse(): Promise<Loan[]> {
-    return notAvailable("Disbursement (requires a transaction PIN)")
+  async disburse(appIds: string[], _method: import("../types/loan.types").DisbursementMethod, pin?: string): Promise<Loan[]> {
+    if (!pin || !/^\d{4}$/.test(pin)) {
+      throw new ApiError("Enter your 4-digit transaction PIN to disburse loans", "validation")
+    }
+    const result = await apiClient.post<{ results?: Array<{ id: string; success: boolean; error?: string }> }>(
+      endpoints.loans.batchDisburse,
+      { ids: appIds, pin },
+    )
+    this.notify()
+    const dataset = await this.load()
+    const failures = result.results?.filter((entry) => !entry.success) ?? []
+    if (failures.length) {
+      const message = failures.map((entry) => `${entry.id}: ${entry.error ?? "disbursement failed"}`).join("; ")
+      throw new ApiError(`Some loans were not disbursed: ${message}`, "unknown")
+    }
+    return dataset.loans.filter((loan) => appIds.includes(loan.applicationId))
   }
   async recordRepayment(input: RecordRepaymentInput): Promise<LoanRepayment> {
     if (!input.pin) {
@@ -748,19 +815,77 @@ export class ApiLoanRepository implements LoanRepository {
     })
     this.notify()
   }
-  async saveForm(): Promise<void> {
-    return notAvailable("Application form editing")
+  async saveForm(form: LoanApplicationForm): Promise<void> {
+    const version = form.versions[form.versions.length - 1]
+    if (!version) throw new ApiError("The application form has no version to save", "validation")
+    await apiClient.put(endpoints.loans.enterpriseTypeForm(form.productId), { form, version, publish: false })
+    this.notify()
   }
-  async saveProductWithForm(): Promise<void> {
-    return notAvailable("Application form editing")
+  async saveProductWithForm(product: LoanProduct, form: LoanApplicationForm, version: FormVersion, publish: boolean): Promise<void> {
+    const savedProduct = await this.saveProduct(product)
+    const persistedForm = { ...form, id: savedProduct.id, productId: savedProduct.id }
+    await apiClient.put(endpoints.loans.enterpriseTypeForm(savedProduct.id), {
+      form: persistedForm,
+      version,
+      publish,
+    })
+    this.notify()
   }
-  async submitFormApplication(): Promise<LoanApplication> {
-    return notAvailable("Submitting applications internally")
+  async submitFormApplication(input: SubmitFormApplicationInput): Promise<LoanApplication> {
+    const submission = extractSubmission(input.version, input.values, input.product, input.members)
+    if (input.source === "Public link") {
+      const result = await apiClient.post<{ applicationId: string }>(
+        endpoints.loans.publicSubmit(input.form.slug),
+        buildPublicPayload(input.version, input.product, input.values),
+      )
+      this.notify()
+      return {
+        id: result.applicationId,
+        reference: result.applicationId,
+        applicant: submission.applicant,
+        productId: input.product.id,
+        productName: input.product.name,
+        terms: submission.terms,
+        purpose: submission.purpose,
+        source: input.source,
+        status: "Submitted",
+        officer: "",
+        submittedAt: new Date().toISOString(),
+        employment: "",
+        monthlyIncome: 0,
+        documents: [],
+        eligibility: { outcome: "Eligible", checks: [] },
+        activity: [],
+      }
+    }
+
+    if (submission.applicant.type !== "Member") {
+      throw new ApiError("Choose an existing customer for an internal application", "validation")
+    }
+    return this.createApplication({
+      applicant: submission.applicant,
+      product: input.product,
+      terms: submission.terms,
+      purpose: submission.purpose,
+      source: input.source,
+      employment: submission.employment,
+      monthlyIncome: submission.monthlyIncome,
+      guarantors: submission.guarantors,
+      response: { form: input.form, version: input.version, values: input.values },
+    })
   }
-  async publishForm(): Promise<void> {
-    return notAvailable("Publishing application forms")
+  async publishForm(form: LoanApplicationForm, version: FormVersion): Promise<void> {
+    await apiClient.put(endpoints.loans.enterpriseTypeForm(form.productId), { form, version, publish: true })
+    this.notify()
   }
-  async archiveForm(): Promise<void> {
-    return notAvailable("Archiving application forms")
+  async archiveForm(form: LoanApplicationForm): Promise<void> {
+    const version = form.versions.find((item) => item.id === form.publishedVersionId) ?? form.versions[form.versions.length - 1]
+    if (!version) throw new ApiError("The application form has no version to archive", "validation")
+    await apiClient.put(endpoints.loans.enterpriseTypeForm(form.productId), {
+      form: { ...form, status: "Archived" },
+      version,
+      publish: false,
+    })
+    this.notify()
   }
 }

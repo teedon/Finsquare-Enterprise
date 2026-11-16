@@ -145,7 +145,7 @@ export function FormRenderer({ version, audience, members, loan, guarantorDocFie
     const m = steps.map((s) => missing(s)).find(Boolean)
     if (m) return setError(m)
     setBusy(true)
-    try { await onSubmit?.(values); setDone(true) } finally { setBusy(false) }
+    try { await onSubmit?.(values); setDone(true) } catch (e) { setError(e instanceof Error ? e.message : "The application could not be submitted. Please try again.") } finally { setBusy(false) }
   }
 
   if (done) {

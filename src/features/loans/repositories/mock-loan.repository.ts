@@ -91,6 +91,7 @@ export function createMockLoanRepository(initial?: LoanDataset): LoanRepository 
 
     async saveProduct(p) {
       await commit({ products: upsert(data.products, p, true) })
+      return p
     },
 
     async createApplication(input: NewApplicationInput) {

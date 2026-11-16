@@ -16,8 +16,10 @@ export const endpoints = {
     types: "/loans/types",
     type: (loanTypeId: string) => `/loans/types/${loanTypeId}`,
     typeForm: (loanTypeId: string) => `/loans/types/${loanTypeId}/form`,
+    enterpriseTypeForm: (loanTypeId: string) => `/loans/types/${loanTypeId}/enterprise-form`,
     applications: "/loans",
     approve: (applicationId: string) => `/loans/${applicationId}/approve`,
+    startReview: (applicationId: string) => `/loans/${applicationId}/start-review`,
     reject: (applicationId: string) => `/loans/${applicationId}/reject`,
     reapply: (applicationId: string) => `/loans/${applicationId}/reapply`,
     requestInfo: (applicationId: string) => `/loans/${applicationId}/request-info`,
@@ -29,6 +31,8 @@ export const endpoints = {
     batchDisburse: "/loans/batch-disburse",
     verifyGuarantor: (applicationId: string, guarantorId: string) =>
       `/loans/${applicationId}/guarantors/${guarantorId}/verify`,
+    guarantors: (applicationId: string) => `/loans/${applicationId}/guarantors`,
+    documentReview: (applicationId: string, documentId: string) => `/loans/${applicationId}/documents/${documentId}/review`,
     activeLoans: "/active-loans",
     repayments: "/repayments",
     repay: (loanId: string) => `/active-loans/${loanId}/repay`,
@@ -39,6 +43,9 @@ export const endpoints = {
     markDefaulted: (loanId: string) => `/active-loans/${loanId}/mark-defaulted`,
     writeOff: (loanId: string) => `/active-loans/${loanId}/write-off`,
     recoverySettings: "/loans/recovery/settings",
+    /** Unauthenticated: the share token of a loan type's application form addresses the lender. */
+    publicForm: (token: string) => `/public/forms/${encodeURIComponent(token)}`,
+    publicSubmit: (token: string) => `/public/forms/${encodeURIComponent(token)}/submit`,
   },
   members: {
     list: "/customers",

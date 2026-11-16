@@ -30,7 +30,7 @@ export interface LoanRepository {
   load(): Promise<LoanDataset>
   subscribe(listener: () => void): () => void
 
-  saveProduct(product: LoanProduct): Promise<void>
+  saveProduct(product: LoanProduct): Promise<LoanProduct>
   createApplication(input: NewApplicationInput): Promise<LoanApplication>
   startReview(id: string): Promise<void>
   approve(id: string, amount: number, note: string): Promise<void>
@@ -48,7 +48,7 @@ export interface LoanRepository {
     notes: string,
     signedForm: boolean,
   ): Promise<void>
-  disburse(appIds: string[], method: DisbursementMethod): Promise<Loan[]>
+  disburse(appIds: string[], method: DisbursementMethod, pin?: string): Promise<Loan[]>
   recordRepayment(input: RecordRepaymentInput): Promise<LoanRepayment>
   startRecovery(loanId: string): Promise<void>
   recoveryAction(c: RecoveryCase, type: string, text: string, status?: RecoveryStatus): Promise<void>
