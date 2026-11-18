@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { BadgeCheck, ClipboardCheck, Download, ReceiptText, UserPlus } from "@/icons"
+import { BadgeCheck, ClipboardCheck, Download, Pencil, ReceiptText, UserPlus } from "@/icons"
 import { ShellPage } from "@/components/layout/ShellPage"
 import { Badge, Button, Tabs } from "@/components/ui"
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/AsyncState"
@@ -9,7 +9,7 @@ import { Panel, PagedTable, fmtDate, money } from "@/features/loans/components/L
 import { MemberWalletPanel } from "@/features/wallet"
 import { FrequencyBadge } from "@/features/contributions/components/ContributionUi"
 import { ParticipantStateBadge } from "@/features/dues/components/DuesUi"
-import { useMember, useMemberMoney, useMembers } from "@/features/members"
+import { EditMemberModal, useMember, useMemberMoney, useMembers } from "@/features/members"
 import { useAuthorization } from "@/features/administrators/hooks/useAuthorization"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
 import { useMemberApplications } from "../hooks/useMemberApplications"
@@ -238,13 +238,22 @@ function MemberProfileBody({
   notify: (text: string) => void
 }) {
   const memberMoney = useMemberMoney({ memberId: member.id, navigate, notify })
+  const { can } = useAuthorization()
   const [tab, setTab] = useState<ProfileTab>("overview")
   const [paying, setPaying] = useState(false)
+  const [editing, setEditing] = useState(false)
   const { summary, obligations } = memberMoney
   const loading = memberMoney.status === "loading"
 
   return (
     <>
+      {editing && (
+        <EditMemberModal
+          member={member}
+          onClose={() => setEditing(false)}
+          notify={notify}
+        />
+      )}
       <ShellPage
         level="detail"
         title={member.name}
@@ -263,6 +272,11 @@ function MemberProfileBody({
         }
         actions={
           <div className="header-actions">
+            {can("members.update") && (
+              <Button variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>
+                Edit member
+              </Button>
+            )}
             <Button variant="secondary" onClick={() => notify(`Statement link sent to ${member.name}`)}>
               Send statement
             </Button>

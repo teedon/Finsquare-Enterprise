@@ -107,15 +107,15 @@ export const endpoints = {
   },
   dues: {
     list: (organizationId: string) => `/organizations/${organizationId}/dues`,
-    detail: (organizationId: string, duesPlanId: string) => `/organizations/${organizationId}/dues/${duesPlanId}`,
-    participants: (organizationId: string, duesPlanId: string) =>
-      `/organizations/${organizationId}/dues/${duesPlanId}/participants`,
-    charges: (organizationId: string, duesPlanId: string) =>
-      `/organizations/${organizationId}/dues/${duesPlanId}/charges`,
-    transactions: (organizationId: string, duesPlanId: string) =>
-      `/organizations/${organizationId}/dues/${duesPlanId}/transactions`,
-    /** Transactional batch used by the mock-shaped repository; production should expose named commands. */
-    commands: (organizationId: string) => `/organizations/${organizationId}/dues/commands`,
+    plans: (organizationId: string) => `/organizations/${organizationId}/dues/plans`,
+    planStatus: (organizationId: string, duesPlanId: string) =>
+      `/organizations/${organizationId}/dues/plans/${duesPlanId}/status`,
+    planLien: (organizationId: string, duesPlanId: string) =>
+      `/organizations/${organizationId}/dues/plans/${duesPlanId}/lien`,
+    payments: (organizationId: string, duesPlanId: string) =>
+      `/organizations/${organizationId}/dues/plans/${duesPlanId}/payments`,
+    /** One plan, or every plan of the community when the body omits the plan id. */
+    recover: (organizationId: string) => `/organizations/${organizationId}/dues/recover`,
   },
   communications: {
     workspace: "/enterprise/communications",

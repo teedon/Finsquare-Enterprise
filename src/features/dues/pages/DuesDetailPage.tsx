@@ -183,7 +183,7 @@ function DetailBody({ ctx }: { ctx: DuesCtx }) {
   )
 }
 async function setStatus(ctx: DuesCtx, planId: string, status: DuesPlanStatus) {
-  const updated = await ctx.service.setStatus(ctx.organizationId, planId, status)
+  const updated = await ctx.service.setStatus(ctx.organizationId, planId, status, ctx.ctx)
   if (updated) ctx.notify(`${updated.name} is now ${status.toLowerCase()}`)
   ctx.retry()
 }

@@ -191,6 +191,21 @@ export interface DuesSummary {
   activePlans: number
   awaitingRecovery: number
 }
+/** Who performed a dues command. */
+export interface DuesActor {
+  id: string
+  name: string
+}
+
+/** How the environment may move money. Mirrors the wallet module's mode. */
+export type DuesMoneyMode = "live" | "simulated" | "blocked"
+
+/** The actor and money-movement mode every dues command is executed under. */
+export interface MutationContext {
+  actor: DuesActor
+  mode: DuesMoneyMode
+}
+
 /** What a recovery run did, so the administrator sees the result instead of a silent mutation. */
 export interface DuesRecoveryResult {
   recovered: number

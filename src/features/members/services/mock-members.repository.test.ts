@@ -9,6 +9,41 @@ const repository = (): MemberRepository => new MockMemberRepository()
 const csv = (text: string): File =>
   ({ name: "members.csv", size: text.length, text: async () => text }) as unknown as File
 
+describe("MockMemberRepository.update", () => {
+  it("applies identity, placement and status changes and refreshes initials", async () => {
+    const repo = repository()
+    const created = await repo.create("org-1", { name: "Amina Yusuf", phone: "08000000000", groupIds: ["g1"] })
+    const updated = await repo.update("org-1", created.id, {
+      name: "Bola Tinubu",
+      groupName: "Savings Circle",
+      branchName: "Ikeja",
+      status: "Suspended",
+    })
+
+    expect(updated).not.toBeNull()
+    expect(updated?.name).toBe("Bola Tinubu")
+    expect(updated?.initials).toBe("BT")
+    expect(updated?.group).toBe("Savings Circle")
+    expect(updated?.branchName).toBe("Ikeja")
+    expect(updated?.status).toBe("Suspended")
+    expect((await repo.getById("org-1", created.id))?.name).toBe("Bola Tinubu")
+  })
+
+  it("notifies open pages when a record is updated", async () => {
+    const repo = repository()
+    const created = await repo.create("org-1", { name: "Amina Yusuf", phone: "08000000000", groupIds: ["g1"] })
+    let notified = 0
+    const unsubscribe = repo.subscribe(() => (notified += 1))
+
+    await repo.update("org-1", created.id, { name: created.name })
+    expect(notified).toBe(1)
+
+    unsubscribe()
+    await repo.update("org-1", created.id, { name: created.name })
+    expect(notified).toBe(1)
+  })
+})
+
 describe("MockMemberrepo.import", () => {
   it("creates a record for every row that has a name and a phone number", async () => {
     const repo = repository()

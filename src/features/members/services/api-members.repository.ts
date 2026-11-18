@@ -91,8 +91,12 @@ export class ApiMemberRepository implements MemberRepository {
       body.lastName = lastName
     }
     if (input.phone !== undefined) body.phoneNumber = input.phone
-    if (input.gender !== undefined) body.gender = input.gender ? genderToMfi(input.gender) : undefined
-    if (input.address !== undefined) body.address = input.address
+    // Email is non-null and unique on the backend, so an emptied email is left unchanged.
+    if (input.email !== undefined && input.email !== "") body.email = input.email
+    if (input.gender !== undefined) body.gender = genderToMfi(input.gender) ?? null
+    if (input.address !== undefined) body.address = input.address || null
+    if (input.nin !== undefined) body.nin = input.nin || null
+    if (input.bvn !== undefined) body.bvn = input.bvn || null
     if (input.groupName !== undefined) body.groupName = input.groupName
     if (input.branchName !== undefined) body.branchName = input.branchName
     if (input.branchId !== undefined) body.branchId = input.branchId

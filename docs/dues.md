@@ -142,13 +142,17 @@ module uses.
 page/component → useDues(DUES_ORG_ID) → duesService → repository → mock | API
 ```
 
-- `repositories/dues.repository.ts` — interface; every method takes `organizationId` first.
-- `mock-dues.repository.ts` — in-memory, scoped to the organization, with `subscribe` so pages refresh
-  after a mutation.
-- `api-dues.repository.ts` — the API-backed implementation to switch on when a backend exists.
-- `services/dues.service.ts` — all commands: `createPlan`, `setStatus`, `updateLienRules`,
-  `recordPayment`, `runLienRecovery`, `startAutoRecovery`. Every method documents what the backend
-  must re-check. Reading and writing a wallet is delegated to `features/wallet`, never done here.
+- `repositories/dues.repository.ts` — the command interface; every method takes `organizationId`
+  first. Every mutation is a **named command** (`createPlan`, `setPlanStatus`, `updateLienRules`,
+  `recordPayment`, `runRecovery`) — the client never posts a computed dataset back.
+- `mock-dues.repository.ts` — in-memory, scoped to the organization, implementing the same commands
+  against the pure rules in `domain/`, with `subscribe` so pages refresh after a mutation.
+- `api-dues.repository.ts` — the API-backed implementation, wired to the MFI dues endpoints.
+- `services/dues.service.ts` — the UI's entry point: `createPlan`, `setStatus`, `updateLienRules`,
+  `recordPayment`, `runLienRecovery`, `startAutoRecovery`. It guards money movement, keeps one
+  recovery run per scope at a time and owns the auto-recovery subscription; the rules live behind
+  the repository so the server stays authoritative. Reading and writing a wallet is delegated to
+  `features/wallet`, never done here.
 - `constants.ts` holds `DUES_ORG_ID` — the tenant the pages operate on, defined once so no component
   imports a mock for it.
 
@@ -187,11 +191,29 @@ branch-scoped role cannot set them). See `docs/permissions.md`.
 
 ## Known gaps
 
-- The mock is in-memory: a dues plan survives only the session that created it, like every other mock
-  dataset.
-- Recovery is bounded by the member wallet's balance and limits, and the wallet and the dues ledger
-  are committed separately (the backend must make it atomic).
+- The mock is in-memory: with `VITE_ENABLE_MOCKS=true` a dues plan survives only the session that
+  created it, like every other mock dataset. With mocks off it is stored by the backend.
 - There is no member portal, so a member paying their own dues is exercised by the administrator's
   wallet payment, the member-profile **Record payment**, and the automatic recovery path.
-- Charges are generated to a rolling horizon for a plan with no end date; a real backend generates
-  each period on its schedule.
+- A plan with no end date gets a rolling twelve-month charge horizon. The backend generates the same
+  horizon at creation and tops it up whenever a plan is resumed, rather than scheduling one period
+  at a time.
+
+## Backend
+
+With `VITE_ENABLE_MOCKS=false` the workspace is served by the MFI backend (`/api/v1/mfi`):
+
+| Command | Endpoint |
+| --- | --- |
+| load the dataset | `GET organizations/:organizationId/dues` |
+| create a plan + roster + charge ledger | `POST organizations/:organizationId/dues/plans` |
+| pause / resume / close | `PATCH organizations/:organizationId/dues/plans/:id/status` |
+| change lien rules | `PATCH organizations/:organizationId/dues/plans/:id/lien` |
+| record a payment | `POST organizations/:organizationId/dues/plans/:id/payments` |
+| collect from wallets | `POST organizations/:organizationId/dues/recover` |
+
+The backend stores plans, participants, charges and transactions in `mfi_dues_*` tables, derives
+charge state and lien state from the stored rows on every read, re-derives the roster's schedule
+itself, and debits a member's MFI wallet inside the same transaction that marks the charges paid
+(`mfi_customer_wallets` + `DUES_PAYMENT` ledger entries). `mode: "blocked"` is refused, and
+`simulated` records the movement without changing how the ledger is written.

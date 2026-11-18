@@ -98,9 +98,27 @@ export class MockMemberRepository implements MemberRepository {
     const register = registers.of(organizationId)
     const index = register.records.findIndex((member) => member.id === memberId)
     if (index < 0) throw new Error("Member not found.")
-    register.records[index] = { ...register.records[index], ...input }
+    const current = register.records[index]
+    const next: Member = {
+      ...current,
+      ...(input.name !== undefined ? {
+        name: input.name,
+        initials: input.name.split(" ").map((part) => part[0]).slice(0, 2).join(""),
+      } : {}),
+      ...(input.phone !== undefined ? { phone: input.phone } : {}),
+      ...(input.email !== undefined ? { email: input.email } : {}),
+      ...(input.gender !== undefined ? { gender: input.gender } : {}),
+      ...(input.address !== undefined ? { address: input.address } : {}),
+      ...(input.nin !== undefined ? { nin: input.nin } : {}),
+      ...(input.bvn !== undefined ? { bvn: input.bvn } : {}),
+      ...(input.branchId !== undefined ? { branchId: input.branchId } : {}),
+      ...(input.branchName !== undefined ? { branchName: input.branchName } : {}),
+      ...(input.groupName !== undefined ? { group: input.groupName } : {}),
+      ...(input.status !== undefined ? { status: input.status } : {}),
+    }
+    register.records[index] = next
     notify()
-    return structuredClone(register.records[index])
+    return structuredClone(next)
   }
 
   async delete(organizationId: string, memberId: string): Promise<void> {

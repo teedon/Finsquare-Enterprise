@@ -230,7 +230,7 @@ export function LienRulesModal({ ctx, plan, onClose, notify }: ModalProps) {
   const [error, setError] = useState<string | null>(null)
   const submit = async () => {
     try {
-      await ctx.service.updateLienRules(ctx.organizationId, plan.id, rules)
+      await ctx.service.updateLienRules(ctx.organizationId, plan.id, rules, ctx.ctx)
       notify(`Lien rules updated for ${plan.name}`)
       ctx.retry()
     } catch (reason) {
