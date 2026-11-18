@@ -1,13 +1,14 @@
 import { useState } from "react"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
-import { GitBranch } from "@/icons"
-import { Button, SectionHeader } from "@/components/ui"
+import { GitBranch, UserPlus } from "@/icons"
+import { Button, SectionHeader, SelectField } from "@/components/ui"
 import {
   AccessDeniedState,
   ErrorState,
   LoadingState,
 } from "@/components/feedback/AsyncState"
 import { useAuthorization } from "@/features/administrators/hooks/useAuthorization"
+import { useMembers } from "@/features/members/hooks/useMembers"
 import { useBranch, useBranches } from "../hooks/useBranches"
 import { BranchStatusBadge } from "./BranchStatusBadge"
 import { GroupStatusBadge } from "@/features/groups/components/GroupStatusBadge"
@@ -22,12 +23,27 @@ export function BranchDetailsPage({
   onViewGroup: (id: string) => void
 }) {
   const organizationId = useOrganizationId()
-  const { branch, members, groups, administrators, status, error, retry } =
-    useBranch(organizationId, branchId)
+  const {
+    branch,
+    members,
+    groups,
+    administrators,
+    status,
+    error,
+    retry,
+    addMember,
+    removeMember,
+  } = useBranch(organizationId, branchId)
   const { can } = useAuthorization()
   const { branches, updateBranch } = useBranches(organizationId)
+  const { members: allMembers } = useMembers(organizationId)
   const [tab, setTab] = useState("Overview")
   const [editOpen, setEditOpen] = useState(false)
+  const [memberName, setMemberName] = useState("Select member")
+  const branchMemberIds = new Set(members.map((member) => member.id))
+  const availableMembers = allMembers.filter(
+    (member) => !branchMemberIds.has(member.id),
+  )
 
   if (status === "loading") return <LoadingState label="Loading branch…" />
   if (status === "error" || !branch)
@@ -125,6 +141,35 @@ export function BranchDetailsPage({
               <b>Branch members</b>
               <span>Primary branch relationships</span>
             </div>
+            {can("branches.update", branch.id) && availableMembers.length > 0 && (
+              <div className="inline-add-control">
+                <SelectField
+                  label="Add member"
+                  value={memberName}
+                  options={[
+                    "Select member",
+                    ...availableMembers.map((member) => member.name),
+                  ]}
+                  onChange={setMemberName}
+                />
+                <Button
+                  icon={UserPlus}
+                  disabled={memberName === "Select member"}
+                  onClick={() => {
+                    const member = availableMembers.find(
+                      (item) => item.name === memberName,
+                    )
+                    if (!member) return
+                    void addMember(member.id).then(() => {
+                      setMemberName("Select member")
+                      retry()
+                    })
+                  }}
+                >
+                  Add
+                </Button>
+              </div>
+            )}
           </div>
           <div className="document-table">
             {members.map((member) => (
@@ -136,8 +181,23 @@ export function BranchDetailsPage({
                     {member.id} · {member.phone}
                   </span>
                 </div>
+                {can("branches.update", branch.id) && (
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      void removeMember(member.id).then(() => retry())
+                    }
+                  >
+                    Remove
+                  </Button>
+                )}
               </div>
             ))}
+            {members.length === 0 && (
+              <p className="contribution-hint" style={{ padding: 14 }}>
+                No members are assigned to this branch yet.
+              </p>
+            )}
           </div>
         </section>
       )}

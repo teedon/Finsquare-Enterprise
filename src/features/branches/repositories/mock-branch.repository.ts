@@ -132,8 +132,32 @@ export class MockBranchRepository implements BranchRepository {
 
   async getBranchMembers(organizationId: string, id: string) {
     this.requireBranch(organizationId, id)
-    return seededOnly(organizationId, membersMock.filter((member) => member.branchId === id))
+    const ids = this.memberAssignments(organizationId, id)
+    return seededOnly(organizationId, membersMock.filter((member) => ids.has(member.id)))
   }
+
+  async addBranchMember(organizationId: string, id: string, memberId: string) {
+    this.requireBranch(organizationId, id)
+    this.memberAssignments(organizationId, id).add(memberId)
+  }
+
+  async removeBranchMember(organizationId: string, id: string, memberId: string) {
+    this.requireBranch(organizationId, id)
+    this.memberAssignments(organizationId, id).delete(memberId)
+  }
+
+  /** Lazy per-branch member assignment, seeded from the static member list for the seed tenant. */
+  private memberAssignments(organizationId: string, id: string) {
+    const key = `${organizationId}:${id}`
+    let set = this.branchMemberIds.get(key)
+    if (!set) {
+      set = new Set(membersMock.filter((member) => member.branchId === id).map((member) => member.id))
+      this.branchMemberIds.set(key, set)
+    }
+    return set
+  }
+
+  private branchMemberIds = new Map<string, Set<string>>()
 
   async getBranchGroups(organizationId: string, id: string) {
     this.requireBranch(organizationId, id)

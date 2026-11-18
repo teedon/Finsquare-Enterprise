@@ -55,11 +55,25 @@ export function useBranch(organizationId: string, branchId: string) {
     [organizationId, branchId],
   )
 
+  const addMember = async (memberId: string) => {
+    await branchesService.addBranchMember(organizationId, branchId, memberId)
+    members.refresh()
+    branch.refresh()
+  }
+
+  const removeMember = async (memberId: string) => {
+    await branchesService.removeBranchMember(organizationId, branchId, memberId)
+    members.refresh()
+    branch.refresh()
+  }
+
   return {
     branch: branch.data,
     members: members.data ?? [],
     groups: groups.data ?? [],
     administrators: administrators.data ?? [],
+    addMember,
+    removeMember,
     status: [branch, members, groups, administrators].some(
       (resource) => resource.status === "error",
     )

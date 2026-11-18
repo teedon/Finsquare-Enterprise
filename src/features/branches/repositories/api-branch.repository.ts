@@ -58,6 +58,22 @@ export class ApiBranchRepository implements BranchRepository {
     return items.map(mapCustomerFields)
   }
 
+  async addBranchMember(
+    _organizationId: string,
+    id: string,
+    memberId: string,
+  ): Promise<void> {
+    await apiClient.post(endpoints.branches.members(id), { memberId })
+  }
+
+  async removeBranchMember(
+    _organizationId: string,
+    id: string,
+    memberId: string,
+  ): Promise<void> {
+    await apiClient.delete(endpoints.branches.member(id, memberId))
+  }
+
   async getBranchGroups(_organizationId: string, id: string): Promise<Group[]> {
     return apiClient.get<Group[]>(endpoints.branches.groups(id))
   }

@@ -67,6 +67,7 @@ export const endpoints = {
     list: "/branches",
     detail: (branchId: string) => `/branches/${branchId}`,
     members: (branchId: string) => `/branches/${branchId}/members`,
+    member: (branchId: string, memberId: string) => `/branches/${branchId}/members/${memberId}`,
     groups: (branchId: string) => `/branches/${branchId}/groups`,
     administrators: (branchId: string) => `/branches/${branchId}/administrators`,
     archive: (branchId: string) => `/branches/${branchId}/archive`,

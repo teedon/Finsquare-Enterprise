@@ -23,6 +23,12 @@ export interface BranchRepository {
   archiveBranch(organizationId: string, id: string): Promise<Branch>
   activateBranch(organizationId: string, id: string): Promise<Branch>
   getBranchMembers(organizationId: string, id: string): Promise<Member[]>
+  addBranchMember(organizationId: string, id: string, memberId: string): Promise<void>
+  removeBranchMember(
+    organizationId: string,
+    id: string,
+    memberId: string,
+  ): Promise<void>
   getBranchGroups(organizationId: string, id: string): Promise<Group[]>
   getBranchAdministrators(
     organizationId: string,
