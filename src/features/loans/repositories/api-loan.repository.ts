@@ -201,6 +201,7 @@ interface DisbursementLogDTO {
   lastError: string | null
   lastAttemptAt: string | null
   reference: string | null
+  destinationType?: "BANK_ACCOUNT" | "CUSTOMER_WALLET"
   createdAt: string
 }
 
@@ -458,8 +459,8 @@ function mapDisbursement(dto: DisbursementLogDTO): Disbursement {
     fees: 0,
     deductions: 0,
     netAmount: dto.amount,
-    destination: "Bank transfer",
-    method: "Bank transfer",
+    destination: dto.destinationType === "CUSTOMER_WALLET" ? "Customer internal wallet" : "Verified bank account",
+    method: dto.destinationType === "CUSTOMER_WALLET" ? "Wallet credit" : "Bank transfer",
     date: dto.createdAt,
     reference: dto.reference ?? dto.id,
   }
@@ -734,13 +735,17 @@ export class ApiLoanRepository implements LoanRepository {
     })
     this.notify()
   }
-  async disburse(appIds: string[], _method: import("../types/loan.types").DisbursementMethod, pin?: string): Promise<Loan[]> {
+  async disburse(appIds: string[], method: import("../types/loan.types").DisbursementMethod, pin?: string): Promise<Loan[]> {
     if (!pin || !/^\d{4}$/.test(pin)) {
       throw new ApiError("Enter your 4-digit transaction PIN to disburse loans", "validation")
     }
     const result = await apiClient.post<{ results?: Array<{ id: string; success: boolean; error?: string }> }>(
       endpoints.loans.batchDisburse,
-      { ids: appIds, pin },
+      {
+        ids: appIds,
+        pin,
+        destination: method === "Wallet credit" ? "CUSTOMER_WALLET" : "BANK_ACCOUNT",
+      },
     )
     this.notify()
     const dataset = await this.load()

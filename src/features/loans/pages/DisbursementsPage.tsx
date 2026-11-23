@@ -21,7 +21,7 @@ function Inner({ ctx }: { ctx: WalletCtx }) {
   const pendingApps = new Set(ctx.data.approvals.filter((a) => a.status === "Pending").flatMap((a) => a.items?.map((i) => i.applicationId) ?? []))
   return (
     <>
-      <SectionHeader eyebrow="LOANS" title="Disbursements" description="Approved loans are paid out from the main wallet. Requests needing approval are completed here." />
+      <SectionHeader eyebrow="LOANS" title="Disbursements" description="Pay approved loans to a verified bank account or the customer’s internal wallet. Requests needing approval are completed here." />
       <Panel title="Ready to disburse" subtitle="Approved loans waiting for funds">
         <PagedTable rows={ready} rowKey={(a) => a.id} pageSize={5} emptyText="No approved loans are waiting."
           columns={[

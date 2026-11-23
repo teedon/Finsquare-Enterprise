@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   ArrowRight,
   BadgeCheck,
@@ -17,6 +17,9 @@ import CorporateAccountForm from "@/features/onboarding/components/CorporateAcco
 import { corporateSchema, validate, type FieldErrors } from "@/features/onboarding/domain/validation"
 import type { CorporateAccountDetails } from "@/features/onboarding/types"
 import { complianceRequirementsMock } from "../mocks/compliance.mock"
+import { apiClient, endpoints } from "@/services/api"
+import { useAuthorization } from "@/features/administrators/hooks/useAuthorization"
+import { REQUIRED_CORPORATE_DOCUMENTS } from "@/features/onboarding/types"
 
 export function CompliancePage({
   docs,
@@ -187,7 +190,39 @@ export function CorporatePage({
 }) {
   const [draft, setDraft] = useState(details)
   const [errors, setErrors] = useState<FieldErrors>({})
+  const [transactionPin, setTransactionPin] = useState("")
+  const [creatingWallet, setCreatingWallet] = useState(false)
+  const [walletCreated, setWalletCreated] = useState(false)
+  const { can } = useAuthorization()
+  const documentsReady = REQUIRED_CORPORATE_DOCUMENTS.every((name) =>
+    draft.documents.some((document) => document.startsWith(`${name}::https://`)),
+  )
   const tone = status === "Connected" ? "green" : status === "Under review" ? "amber" : "neutral"
+
+  useEffect(() => {
+    let active = true
+    apiClient.get<{ account?: { id?: string } }>(endpoints.wallet.workspace).then((wallet) => {
+      if (active && wallet.account?.id && wallet.account.id !== "pending") setWalletCreated(true)
+    }).catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  const createCommunityWallet = async () => {
+    if (!documentsReady || !/^\d{4}$/.test(transactionPin)) return
+    setCreatingWallet(true)
+    try {
+      await apiClient.patch(endpoints.corporateAccount.account, { status, details: draft })
+      await apiClient.post(endpoints.wallet.setup, { transactionPin })
+      saveDetails(draft)
+      setWalletCreated(true)
+      setTransactionPin("")
+      notify("Enterprise community wallet created")
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Could not create the community wallet")
+    } finally {
+      setCreatingWallet(false)
+    }
+  }
   return (
     <div className="page">
       <SectionHeader
@@ -262,6 +297,26 @@ export function CorporatePage({
           </div>
         </section>
       )}
+      <section className="panel account-form">
+        <div className="panel-head">
+          <div>
+            <b>Enterprise community wallet</b>
+            <span>{walletCreated ? "The community wallet is ready." : "Upload all four verification documents to enable wallet creation."}</span>
+          </div>
+        </div>
+        {!walletCreated && can("wallet.manage") && (
+          <div className="account-footer">
+            <label className="field">
+              <span>Wallet transaction PIN</span>
+              <input aria-label="Wallet transaction PIN" inputMode="numeric" maxLength={4} type="password" value={transactionPin} onChange={(event) => setTransactionPin(event.target.value.replace(/\D/g, ""))} />
+            </label>
+            <Button disabled={!documentsReady || transactionPin.length !== 4 || creatingWallet} onClick={() => void createCommunityWallet()}>
+              {creatingWallet ? "Creating wallet…" : "Create community wallet"}
+            </Button>
+          </div>
+        )}
+        {!can("wallet.manage") && <div className="account-footer"><span>You need wallet management access to create this wallet.</span></div>}
+      </section>
     </div>
   )
 }

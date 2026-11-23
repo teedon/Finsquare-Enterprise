@@ -1,8 +1,10 @@
+import { useState } from "react"
 import { Badge, Field, SelectField } from "@/components/ui"
 import { Check, Upload } from "@/icons"
 import { BANKS } from "@/features/wallet/constants/banks"
 import { ID_TYPES, REQUIRED_CORPORATE_DOCUMENTS, type CorporateAccountDetails } from "../types"
 import type { FieldErrors } from "../domain/validation"
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload"
 
 interface Props {
   value: CorporateAccountDetails
@@ -12,6 +14,9 @@ interface Props {
 
 /** Shared by the onboarding step and Settings → Corporate account & wallet. */
 export default function CorporateAccountForm({ value, onChange, errors = {} }: Props) {
+  const { upload, uploading } = useCloudinaryUpload({ folder: "finsquare/enterprise/corporate-documents" })
+  const [uploadingDocument, setUploadingDocument] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState("")
   const set = (key: keyof CorporateAccountDetails) => (v: string) => onChange({ ...value, [key]: v })
   const field = (key: keyof CorporateAccountDetails, label: string, placeholder?: string) => (
     <div>
@@ -19,8 +24,7 @@ export default function CorporateAccountForm({ value, onChange, errors = {} }: P
       {errors[key] && <small className="field-error">{errors[key]}</small>}
     </div>
   )
-  const toggleDoc = (name: string, on: boolean) =>
-    onChange({ ...value, documents: on ? [...new Set([...value.documents, name])] : value.documents.filter((d) => d !== name) })
+  const documentUrl = (name: string) => value.documents.find((doc) => doc.startsWith(`${name}::`))?.slice(name.length + 2)
   return (
     <div className="corp-form">
       <section>
@@ -52,21 +56,34 @@ export default function CorporateAccountForm({ value, onChange, errors = {} }: P
         </div>
       </section>
       <section>
-        <h4>Verification documents <small>(you can upload these later)</small></h4>
+        <h4>Verification documents <small>(upload all four before creating the community wallet)</small></h4>
+        {uploadError && <small className="field-error">{uploadError}</small>}
         <div className="corp-docs">
           {REQUIRED_CORPORATE_DOCUMENTS.map((name) => {
-            const done = value.documents.includes(name)
+            const done = Boolean(documentUrl(name))
             return (
               <label key={name} className={done ? "done" : ""}>
                 <span>{done ? <Check size={14} /> : <Upload size={14} />}</span>
                 <b>{name}</b>
-                {done ? <Badge tone="green">Uploaded</Badge> : <Badge>Pending</Badge>}
+                {uploadingDocument === name ? <Badge>Uploading…</Badge> : done ? <Badge tone="green">Uploaded</Badge> : <Badge>Pending</Badge>}
                 <input
                   type="file"
                   hidden
-                  onChange={(e) => {
-                    toggleDoc(name, Boolean(e.target.files?.length))
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  disabled={uploading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
                     e.target.value = ""
+                    if (!file) return
+                    setUploadError("")
+                    setUploadingDocument(name)
+                    const result = await upload(file)
+                    setUploadingDocument(null)
+                    if (!result.ok) {
+                      setUploadError(result.message)
+                      return
+                    }
+                    onChange({ ...value, documents: [...value.documents.filter((doc) => !doc.startsWith(`${name}::`)), `${name}::${result.secureUrl}`] })
                   }}
                 />
               </label>
