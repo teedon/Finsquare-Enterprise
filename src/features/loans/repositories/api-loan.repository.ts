@@ -1,6 +1,7 @@
 import { apiClient, ApiError, endpoints } from "@/services/api"
 import type {
   Borrower,
+  DisbursementMethod,
   Disbursement,
   Guarantor,
   GuarantorRequest,
@@ -22,7 +23,7 @@ import type {
 import type { LoanRepository } from "./loan.repository"
 import { extractSubmission } from "../domain/loan-forms"
 import { buildPublicPayload } from "../domain/public-application"
-import type { FormVersion } from "../types/form.types"
+import type { FormResponseValue, FormVersion } from "../types/form.types"
 
 // ── Backend DTO shapes (after the API client unwraps `{ success, data }`) ─────
 
@@ -135,7 +136,7 @@ interface LoanApplicationDTO {
   eligibilityChecks?: Array<unknown>
   revisedOffer?: { amount: number; duration: number; note?: string | null } | null
   formVersion?: FormVersion
-  formResponse?: Record<string, any> | null
+  formResponse?: Record<string, FormResponseValue> | null
 }
 
 interface ActiveLoanDTO {
@@ -251,7 +252,11 @@ const appStatus = (v: string): LoanApplication["status"] => {
   }
 }
 
-function mapProduct(dto: LoanTypeDTO): LoanProduct {
+function mapProduct(dto: LoanTypeDTO, savedApplicationType?: unknown): LoanProduct {
+  const applicationType =
+    savedApplicationType === "Internal" || savedApplicationType === "External" || savedApplicationType === "Both"
+      ? savedApplicationType
+      : dto.applicationType ?? (dto.guarantorType === "EXTERNAL" ? "External" : "Both")
   return {
     id: dto.id,
     name: dto.name,
@@ -261,7 +266,7 @@ function mapProduct(dto: LoanTypeDTO): LoanProduct {
     minDuration: dto.minDuration,
     maxDuration: dto.maxDuration,
     durationUnit: durUnit(dto.durationUnit),
-    interestType: interestType(dto.interestType),
+    interestType: dto.interestRate === 0 ? "Zero interest" : interestType(dto.interestType),
     interestRate: dto.interestRate,
     applicationFeePct: dto.applicationFeePct ?? (dto.hasApplicationFee && dto.applicationFeeType === "percentage" ? dto.applicationFeeValue ?? 0 : 0),
     deductionModel: dto.deductionModel ?? (dto.deductFeeAtDisbursement ? "Fees at disbursement" : "None"),
@@ -271,7 +276,7 @@ function mapProduct(dto: LoanTypeDTO): LoanProduct {
     requiresApproval: dto.requiresApproval ?? dto.requireAdminApproval ?? true,
     requiresGuarantor: dto.requiresGuarantor ?? false,
     guarantorsRequired: dto.guarantorCount ?? 0,
-    applicationType: dto.applicationType ?? (dto.guarantorType === "EXTERNAL" ? "External" : "Both"),
+    applicationType,
     allowExternalGuarantors: dto.allowExternalGuarantors ?? dto.guarantorType === "EXTERNAL",
     requireGuarantorVerification: dto.requireGuarantorVerification ?? false,
     requireGuarantorDocuments: dto.requireGuarantorDocuments ?? false,
@@ -509,18 +514,21 @@ export class ApiLoanRepository implements LoanRepository {
 
   async load(): Promise<LoanDataset> {
     const [types, applicationsPage, enterprise, repaymentsPage, logs] = await Promise.all([
-      apiClient.get<LoanTypeDTO[]>(endpoints.loans.types),
+      apiClient.get<LoanTypeDTO[]>(endpoints.loans.enterpriseTypes),
       apiClient.get<{ applications: LoanApplicationDTO[] }>(endpoints.loans.applications),
       apiClient.get<EnterpriseLoansDTO>(endpoints.loans.enterpriseLoans),
       apiClient.get<{ repayments: RepaymentDTO[] }>(endpoints.loans.repayments),
       apiClient.get<DisbursementLogDTO[]>(endpoints.loans.disbursementLogs),
     ])
 
-    const products = types.map(mapProduct)
     const formRecords = await Promise.all(types.map(async (type) => ({
       productId: type.id,
       saved: await apiClient.get<{ form: LoanApplicationForm; version: FormVersion } | null>(endpoints.loans.enterpriseTypeForm(type.id)),
     })))
+    const products = types.map((type) => {
+      const savedForm = formRecords.find((record) => record.productId === type.id)?.saved
+      return mapProduct(type, savedForm?.form?.applicationType)
+    })
     const applications = applicationsPage.applications.map(mapApplication)
     const loans = enterprise.loans.map(mapLoan)
     const repayments = repaymentsPage.repayments.map(mapRepayment)
@@ -597,9 +605,9 @@ export class ApiLoanRepository implements LoanRepository {
       minMembershipDurationMonths: product.eligibility.minMembershipMonths,
       requireSavingsHistory: product.eligibility.minSavingsBalance > 0,
     }
-    const existing = (await this.load()).products.some((p) => p.id === product.id)
+    const existingProduct = await apiClient.get<LoanTypeDTO | null>(endpoints.loans.type(product.id))
     let savedProduct = product
-    if (existing) {
+    if (existingProduct) {
       await apiClient.put(endpoints.loans.type(product.id), payload)
     } else {
       const created = await apiClient.post<{ id: string }>(endpoints.loans.types, payload)
@@ -735,7 +743,7 @@ export class ApiLoanRepository implements LoanRepository {
     })
     this.notify()
   }
-  async disburse(appIds: string[], method: import("../types/loan.types").DisbursementMethod, pin?: string): Promise<Loan[]> {
+  async disburse(appIds: string[], method: DisbursementMethod, pin?: string): Promise<Loan[]> {
     if (!pin || !/^\d{4}$/.test(pin)) {
       throw new ApiError("Enter your 4-digit transaction PIN to disburse loans", "validation")
     }
@@ -754,7 +762,7 @@ export class ApiLoanRepository implements LoanRepository {
       const message = failures.map((entry) => `${entry.id}: ${entry.error ?? "disbursement failed"}`).join("; ")
       throw new ApiError(`Some loans were not disbursed: ${message}`, "unknown")
     }
-    return dataset.loans.filter((loan) => appIds.includes(loan.applicationId))
+    return dataset.loans.filter((loan) => loan.applicationId && appIds.includes(loan.applicationId))
   }
   async recordRepayment(input: RecordRepaymentInput): Promise<LoanRepayment> {
     if (!input.pin) {
@@ -828,7 +836,7 @@ export class ApiLoanRepository implements LoanRepository {
   }
   async saveProductWithForm(product: LoanProduct, form: LoanApplicationForm, version: FormVersion, publish: boolean): Promise<void> {
     const savedProduct = await this.saveProduct(product)
-    const persistedForm = { ...form, id: savedProduct.id, productId: savedProduct.id }
+    const persistedForm = { ...form, id: savedProduct.id, productId: savedProduct.id, applicationType: product.applicationType }
     await apiClient.put(endpoints.loans.enterpriseTypeForm(savedProduct.id), {
       form: persistedForm,
       version,

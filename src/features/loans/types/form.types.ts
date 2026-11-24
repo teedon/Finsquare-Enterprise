@@ -5,12 +5,13 @@
  */
 export * from "@/features/forms/types/form.types"
 
-import type { FormResponseValue, FormStatus, FormVersion } from "@/features/forms/types/form.types"
+import type { ApplicationType, FormResponseValue, FormStatus, FormVersion } from "@/features/forms/types/form.types"
 
 export interface LoanApplicationForm {
   id: string
   name: string
   productId: string
+  applicationType?: ApplicationType
   slug: string
   status: FormStatus
   publishedVersionId?: string

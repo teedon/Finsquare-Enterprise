@@ -14,6 +14,7 @@ export const endpoints = {
   },
   loans: {
     types: "/loans/types",
+    enterpriseTypes: "/loans/types?includeInactive=true",
     type: (loanTypeId: string) => `/loans/types/${loanTypeId}`,
     typeForm: (loanTypeId: string) => `/loans/types/${loanTypeId}/form`,
     enterpriseTypeForm: (loanTypeId: string) => `/loans/types/${loanTypeId}/enterprise-form`,

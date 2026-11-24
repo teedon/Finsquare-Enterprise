@@ -4,6 +4,7 @@ import { useAuthorization } from "@/features/administrators/hooks/useAuthorizati
 import { ErrorState, LoadingState } from "@/components/feedback/AsyncState"
 import { Badge, Button, Field, SectionHeader, Toggle } from "@/components/ui"
 import { Landmark } from "@/icons"
+import { PagedTable } from "@/features/loans/components/LoanUi"
 import { useWalletSettlement } from "../hooks/useWalletSettlement"
 import { walletSettlementService } from "../services/wallet-settlement.service"
 import type {
@@ -14,6 +15,19 @@ import type {
 } from "../types"
 
 const currency = new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 2 })
+const transactionSourceLabels: Record<string, string> = {
+  VA_TOPUP: "Virtual account top-up",
+  LOAN_DISBURSEMENT: "Loan disbursement",
+  LOAN_REPAYMENT: "Loan repayment",
+  PAYOUT: "Bank payout",
+  PAYOUT_CHARGE: "Payout charge",
+  DUES_PAYMENT: "Dues payment",
+  CONTRIBUTION_PAYMENT: "Contribution payment",
+  ESUSU_CONTRIBUTION: "Esusu contribution",
+  ADJUSTMENT_CREDIT: "Wallet credit adjustment",
+  ADJUSTMENT_DEBIT: "Wallet debit adjustment",
+  REVERSAL: "Reversal",
+}
 
 type Line = { type: SettlementAllocationType; ref: string; label: string; amount: number; dueDate: string }
 
@@ -53,14 +67,8 @@ export default function WalletSettlementPage({ notify }: { notify: (message: str
   }, [organizationId, customerSearch, notify])
 
   useEffect(() => {
-    if (!customerId) {
-      setCustomerData(null)
-      setCustomerStatus("ready")
-      return
-    }
+    if (!customerId) return
     let active = true
-    setCustomerStatus("loading")
-    setAmounts({})
     walletSettlementService
       .getCustomer(organizationId, customerId)
       .then((data) => {
@@ -206,7 +214,16 @@ export default function WalletSettlementPage({ notify }: { notify: (message: str
             />
             <label className="field">
               <span>Customer wallet</span>
-              <select value={customerId} onChange={(event) => setCustomerId(event.target.value)}>
+              <select
+                value={customerId}
+                onChange={(event) => {
+                  const nextCustomerId = event.target.value
+                  setCustomerId(nextCustomerId)
+                  setCustomerData(null)
+                  setCustomerStatus(nextCustomerId ? "loading" : "ready")
+                  setAmounts({})
+                }}
+              >
                 <option value="">Select a customer</option>
                 {customers.map((customer) => (
                   <option value={customer.id} key={customer.id}>
@@ -313,6 +330,98 @@ export default function WalletSettlementPage({ notify }: { notify: (message: str
             <b>Settlement access required</b>
             <span>Your role does not have permission to review or distribute customer wallet funds.</span>
           </div>
+        </section>
+      )}
+      {customerData && customerStatus === "ready" && (
+        <section className="panel settlement-distribution">
+          <div className="panel-head">
+            <div>
+              <b>Customer wallet transactions</b>
+              <span>Recent credits and debits for {customerData.customer.name}.</span>
+            </div>
+          </div>
+          {customerData.transactions.some(
+            (transaction) =>
+              transaction.details?.entryRole === "DISBURSEMENT_CREDIT" ||
+              transaction.details?.entryRole === "EXTERNAL_BANK_PAYOUT",
+          ) && (
+            <div className="settlement-note">
+              Loan payments sent directly to a bank appear as a matched wallet credit and debit. They do not change the
+              wallet balance.
+            </div>
+          )}
+          <PagedTable
+            rows={customerData.transactions}
+            rowKey={(transaction) => transaction.id}
+            pageSize={10}
+            emptyText="No wallet transactions have been recorded."
+            columns={[
+              {
+                id: "date",
+                header: "Date",
+                render: (transaction) =>
+                  new Date(transaction.createdAt).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" }),
+              },
+              {
+                id: "activity",
+                header: "Activity",
+                render: (transaction) => {
+                  const destination =
+                    typeof transaction.details?.destinationAccountName === "string"
+                      ? transaction.details.destinationAccountName
+                      : typeof transaction.details?.destinationAccountNumber === "string"
+                        ? transaction.details.destinationAccountNumber
+                        : ""
+                  return (
+                    <div>
+                      <b>{transactionSourceLabels[transaction.source] ?? transaction.source.replace(/_/g, " ")}</b>
+                      <small>
+                        {transaction.narration ?? "—"}
+                        {destination ? ` · ${destination}` : ""}
+                      </small>
+                    </div>
+                  )
+                },
+              },
+              {
+                id: "direction",
+                header: "Direction",
+                render: (transaction) => (
+                  <Badge tone={transaction.type === "CREDIT" ? "green" : "amber"}>{transaction.type}</Badge>
+                ),
+              },
+              {
+                id: "amount",
+                header: "Amount",
+                render: (transaction) => (
+                  <b>
+                    {transaction.type === "CREDIT" ? "+" : "−"}
+                    {currency.format(transaction.amount)}
+                  </b>
+                ),
+              },
+              {
+                id: "balance",
+                header: "Balance after",
+                render: (transaction) =>
+                  transaction.balanceAfter == null ? "—" : currency.format(transaction.balanceAfter),
+              },
+              {
+                id: "status",
+                header: "Status",
+                render: (transaction) => (
+                  <Badge
+                    tone={
+                      transaction.status === "SUCCESS" ? "green" : transaction.status === "FAILED" ? "red" : "amber"
+                    }
+                  >
+                    {transaction.status}
+                  </Badge>
+                ),
+              },
+              { id: "reference", header: "Reference", render: (transaction) => transaction.reference },
+            ]}
+          />
         </section>
       )}
     </div>

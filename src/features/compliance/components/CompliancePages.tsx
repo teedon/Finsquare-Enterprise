@@ -1,18 +1,8 @@
 import { useEffect, useState } from "react"
-import {
-  ArrowRight,
-  BadgeCheck,
-  Check,
-  Download,
-  FileText,
-  Upload,
-} from "@/icons"
+import { ArrowRight, BadgeCheck, Check, Download, FileText, Upload } from "@/icons"
 import { Button, Badge, SectionHeader } from "@/components/ui"
 import type { CSSProperties } from "react"
-import type {
-  ComplianceDocumentStatus as DocStatus,
-  CorporateAccountStatus,
-} from "@/types"
+import type { ComplianceDocumentStatus as DocStatus, CorporateAccountStatus } from "@/types"
 import CorporateAccountForm from "@/features/onboarding/components/CorporateAccountForm"
 import { corporateSchema, validate, type FieldErrors } from "@/features/onboarding/domain/validation"
 import type { CorporateAccountDetails } from "@/features/onboarding/types"
@@ -30,9 +20,7 @@ export function CompliancePage({
 }) {
   const approved = docs.filter((d) => d === "Approved").length
   const percent = 40 + approved * 12
-  const names = complianceRequirementsMock.map(
-    (requirement) => requirement.name,
-  )
+  const names = complianceRequirementsMock.map((requirement) => requirement.name)
   return (
     <div className="page">
       <SectionHeader
@@ -40,25 +28,16 @@ export function CompliancePage({
         title="Organization verification"
         description="Complete verification in parallel while you configure and digitize your organization."
         actions={
-          <Badge tone={percent === 100 ? "green" : "amber"}>
-            {percent === 100 ? "Verified" : "In progress"}
-          </Badge>
+          <Badge tone={percent === 100 ? "green" : "amber"}>{percent === 100 ? "Verified" : "In progress"}</Badge>
         }
       />
       <div className="compliance-progress">
         <div>
-          <div
-            className="progress-ring"
-            style={{ "--progress": `${percent * 3.6}deg` } as CSSProperties}
-          >
+          <div className="progress-ring" style={{ "--progress": `${percent * 3.6}deg` } as CSSProperties}>
             <span>{percent}%</span>
           </div>
           <div>
-            <b>
-              {percent === 100
-                ? "Verification complete"
-                : "Verification in progress"}
-            </b>
+            <b>{percent === 100 ? "Verification complete" : "Verification in progress"}</b>
             <span>
               {percent === 100
                 ? "Your organization has met the verification requirements."
@@ -73,11 +52,7 @@ export function CompliancePage({
       <div className="compliance-sections">
         {[
           ["Organization details", "Completed", "4 of 4 fields"],
-          [
-            "Corporate documents",
-            `${approved} / 5 submitted`,
-            "Registration and governance",
-          ],
+          ["Corporate documents", `${approved} / 5 submitted`, "Registration and governance"],
           ["Authorized representatives", "Completed", "2 representatives"],
           ["Identity verification", "2 / 3 completed", "One review remaining"],
           [
@@ -87,26 +62,14 @@ export function CompliancePage({
           ],
         ].map(([title, status, sub], i) => (
           <div key={title}>
-            <div
-              className={`compliance-icon ${
-                status === "Completed" ? "complete" : ""
-              }`}
-            >
+            <div className={`compliance-icon ${status === "Completed" ? "complete" : ""}`}>
               {status === "Completed" ? <Check size={15} /> : i + 1}
             </div>
             <div>
               <b>{title}</b>
               <span>{sub}</span>
             </div>
-            <Badge
-              tone={
-                status === "Completed"
-                  ? "green"
-                  : status.includes("required")
-                    ? "red"
-                    : "amber"
-              }
-            >
+            <Badge tone={status === "Completed" ? "green" : status.includes("required") ? "red" : "amber"}>
               {status}
             </Badge>
           </div>
@@ -130,41 +93,18 @@ export function CompliancePage({
               </div>
               <div>
                 <b>{name}</b>
-                <span>
-                  {docs[index] === "Required"
-                    ? "No file uploaded"
-                    : `PDF · Updated ${index + 18} May 2025`}
-                </span>
+                <span>{docs[index] === "Required" ? "No file uploaded" : `PDF · Updated ${index + 18} May 2025`}</span>
               </div>
-              <Badge
-                tone={
-                  docs[index] === "Approved"
-                    ? "green"
-                    : docs[index] === "Pending"
-                      ? "amber"
-                      : "red"
-                }
-              >
+              <Badge tone={docs[index] === "Approved" ? "green" : docs[index] === "Pending" ? "amber" : "red"}>
                 {docs[index]}
               </Badge>
               <div className="doc-actions">
-                {docs[index] !== "Required" && (
-                  <Button variant="ghost">View</Button>
-                )}
+                {docs[index] !== "Required" && <Button variant="ghost">View</Button>}
                 <Button
                   variant="secondary"
-                  onClick={() =>
-                    updateDoc(
-                      index,
-                      docs[index] === "Approved" ? "Pending" : "Approved",
-                    )
-                  }
+                  onClick={() => updateDoc(index, docs[index] === "Approved" ? "Pending" : "Approved")}
                 >
-                  {docs[index] === "Required"
-                    ? "Upload"
-                    : docs[index] === "Approved"
-                      ? "Replace"
-                      : "Approve"}
+                  {docs[index] === "Required" ? "Upload" : docs[index] === "Approved" ? "Replace" : "Approve"}
                 </Button>
               </div>
             </div>
@@ -192,7 +132,15 @@ export function CorporatePage({
   const [errors, setErrors] = useState<FieldErrors>({})
   const [transactionPin, setTransactionPin] = useState("")
   const [creatingWallet, setCreatingWallet] = useState(false)
-  const [walletCreated, setWalletCreated] = useState(false)
+  const [walletAccount, setWalletAccount] = useState<{
+    id: string
+    accountNumber: string
+    accountName: string
+    bankName: string
+    currency: string
+    status: string
+    availableBalance: number
+  } | null>(null)
   const { can } = useAuthorization()
   const documentsReady = REQUIRED_CORPORATE_DOCUMENTS.every((name) =>
     draft.documents.some((document) => document.startsWith(`${name}::https://`)),
@@ -201,11 +149,23 @@ export function CorporatePage({
 
   useEffect(() => {
     let active = true
-    apiClient.get<{ account?: { id?: string } }>(endpoints.wallet.workspace).then((wallet) => {
-      if (active && wallet.account?.id && wallet.account.id !== "pending") setWalletCreated(true)
-    }).catch(() => {})
-    return () => { active = false }
+    apiClient
+      .get<{ account?: typeof walletAccount }>(endpoints.wallet.workspace)
+      .then((wallet) => {
+        if (active && wallet.account?.id && wallet.account.id !== "pending") {
+          setWalletAccount(wallet.account)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
   }, [])
+
+  const refreshWalletAccount = async () => {
+    const wallet = await apiClient.get<{ account?: typeof walletAccount }>(endpoints.wallet.workspace)
+    if (wallet.account?.id && wallet.account.id !== "pending") setWalletAccount(wallet.account)
+  }
 
   const createCommunityWallet = async () => {
     if (!documentsReady || !/^\d{4}$/.test(transactionPin)) return
@@ -213,8 +173,8 @@ export function CorporatePage({
     try {
       await apiClient.patch(endpoints.corporateAccount.account, { status, details: draft })
       await apiClient.post(endpoints.wallet.setup, { transactionPin })
+      await refreshWalletAccount()
       saveDetails(draft)
-      setWalletCreated(true)
       setTransactionPin("")
       notify("Enterprise community wallet created")
     } catch (error) {
@@ -239,10 +199,24 @@ export function CorporatePage({
           <div className="page-title">Corporate account connected</div>
           <p>Your workspace is ready for live financial operations.</p>
           <div className="account-details">
-            <div><span>Business</span><b>{details.businessName || "—"}</b></div>
-            <div><span>Settlement account</span><b>{details.bankName} · {details.accountNumber || "—"}</b></div>
-            <div><span>Authorized representative</span><b>{details.repName || "—"}</b></div>
-            <div><span>Currency</span><b>Nigerian Naira (NGN)</b></div>
+            <div>
+              <span>Business</span>
+              <b>{details.businessName || "—"}</b>
+            </div>
+            <div>
+              <span>Settlement account</span>
+              <b>
+                {details.bankName} · {details.accountNumber || "—"}
+              </b>
+            </div>
+            <div>
+              <span>Authorized representative</span>
+              <b>{details.repName || "—"}</b>
+            </div>
+            <div>
+              <span>Currency</span>
+              <b>Nigerian Naira (NGN)</b>
+            </div>
           </div>
         </div>
       ) : (
@@ -301,21 +275,65 @@ export function CorporatePage({
         <div className="panel-head">
           <div>
             <b>Enterprise community wallet</b>
-            <span>{walletCreated ? "The community wallet is ready." : "Upload all four verification documents to enable wallet creation."}</span>
+            <span>
+              {walletAccount
+                ? "The community wallet is ready."
+                : "Upload all four verification documents to enable wallet creation."}
+            </span>
           </div>
         </div>
-        {!walletCreated && can("wallet.manage") && (
+        {walletAccount && (
+          <div className="account-details">
+            <div>
+              <span>Account name</span>
+              <b>{walletAccount.accountName || "—"}</b>
+            </div>
+            <div>
+              <span>Account number</span>
+              <b>{walletAccount.accountNumber || "Pending"}</b>
+            </div>
+            <div>
+              <span>Bank</span>
+              <b>{walletAccount.bankName || "—"}</b>
+            </div>
+            <div>
+              <span>Available balance</span>
+              <b>
+                {walletAccount.currency || "NGN"} {Number(walletAccount.availableBalance || 0).toLocaleString()}
+              </b>
+            </div>
+            <div>
+              <span>Status</span>
+              <b>{walletAccount.status || "Active"}</b>
+            </div>
+          </div>
+        )}
+        {!walletAccount && can("wallet.manage") && (
           <div className="account-footer">
             <label className="field">
               <span>Wallet transaction PIN</span>
-              <input aria-label="Wallet transaction PIN" inputMode="numeric" maxLength={4} type="password" value={transactionPin} onChange={(event) => setTransactionPin(event.target.value.replace(/\D/g, ""))} />
+              <input
+                aria-label="Wallet transaction PIN"
+                inputMode="numeric"
+                maxLength={4}
+                type="password"
+                value={transactionPin}
+                onChange={(event) => setTransactionPin(event.target.value.replace(/\D/g, ""))}
+              />
             </label>
-            <Button disabled={!documentsReady || transactionPin.length !== 4 || creatingWallet} onClick={() => void createCommunityWallet()}>
+            <Button
+              disabled={!documentsReady || transactionPin.length !== 4 || creatingWallet}
+              onClick={() => void createCommunityWallet()}
+            >
               {creatingWallet ? "Creating wallet…" : "Create community wallet"}
             </Button>
           </div>
         )}
-        {!can("wallet.manage") && <div className="account-footer"><span>You need wallet management access to create this wallet.</span></div>}
+        {!can("wallet.manage") && (
+          <div className="account-footer">
+            <span>You need wallet management access to create this wallet.</span>
+          </div>
+        )}
       </section>
     </div>
   )

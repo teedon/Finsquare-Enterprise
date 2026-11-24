@@ -158,9 +158,11 @@ export interface Guarantor {
   id: string
   name: string
   phone: string
+  email?: string
   relationship: string
   type: "Member" | "External"
   memberId?: string
+  address?: string
   occupation: string
 }
 

@@ -31,7 +31,7 @@ export function ProductWizard({ ctx, initial, startStep = 0, onClose }: { ctx: L
   const organizationId = useOrganizationId()
   const questionLibrary = useQuestionLibrary(organizationId)
   const [p, setP] = useState<LoanProduct>(initial ?? blankProduct())
-  const [form, setForm] = useState<LoanApplicationForm>(() => data.forms.find((f) => f.productId === p.id) ?? newForm(p))
+  const [form] = useState<LoanApplicationForm>(() => data.forms.find((f) => f.productId === p.id) ?? newForm(p))
   const [version, setVersion] = useState<FormVersion>(() => workingVersion(form))
   const [step, setStep] = useState(startStep)
   const [error, setError] = useState("")
@@ -52,8 +52,9 @@ export function ProductWizard({ ctx, initial, startStep = 0, onClose }: { ctx: L
     const product = { ...p, interestRate: p.interestType === "Zero interest" ? 0 : p.interestRate, status: publish ? p.status : initial ? p.status : ("Inactive" as const) }
     const live = publishedVersion(form)
     const unchanged = !!live && JSON.stringify(live.steps) === JSON.stringify(version.steps)
+    const applicationTypeChanged = !initial || initial.applicationType !== product.applicationType
     const named = { ...form, name: form.submissions || initial ? form.name : `${p.name} application form`, productId: product.id }
-    if (publish && unchanged) await service.saveProduct(product)
+    if (publish && unchanged && !applicationTypeChanged) await service.saveProduct(product)
     else await service.saveProductWithForm(product, named, version, publish)
     notify(publish ? "Loan product published — new applications use the published form" : "Draft saved")
     onClose()
@@ -103,7 +104,7 @@ export function ProductWizard({ ctx, initial, startStep = 0, onClose }: { ctx: L
             <NumField label="Minimum duration" value={p.minDuration} onChange={(v) => set("minDuration", v)} />
             <NumField label="Maximum duration" value={p.maxDuration} onChange={(v) => set("maxDuration", v)} />
             <SelectField label="Duration unit" value={p.durationUnit} options={["Days", "Weeks", "Months"]} onChange={(v) => set("durationUnit", v as DurationUnit)} />
-            <SelectField label="Repayment frequency" value={p.frequency} options={["Daily", "Weekly", "Biweekly", "Monthly"]} onChange={(v) => set("frequency", v as RepaymentFrequency)} />
+            <SelectField label="Repayment frequency" value={p.frequency} options={["Daily", "Weekly", "Monthly"]} onChange={(v) => set("frequency", v as RepaymentFrequency)} />
             <SelectField label="Interest type" value={p.interestType} options={["Flat", "Reducing balance", "Zero interest"]} onChange={(v) => set("interestType", v as InterestType)} />
             <NumField label="Interest rate (% per annum)" step={0.5} value={p.interestType === "Zero interest" ? 0 : p.interestRate} onChange={(v) => set("interestRate", v)} />
             <NumField label="Application fee (%)" step={0.25} value={p.applicationFeePct} onChange={(v) => set("applicationFeePct", v)} />

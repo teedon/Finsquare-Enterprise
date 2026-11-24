@@ -55,6 +55,7 @@ class MockWalletSettlementRepository implements WalletSettlementRepository {
     const wallet = memberWalletsMock.find((item) => item.memberId === userId)
     return {
       customer: { id: userId, name: member?.name ?? "Customer", phone: member?.phone ?? null },
+      transactions: [],
       wallet: wallet
         ? { balance: this.balances.get(userId) ?? wallet.availableBalance, isActive: true, isFrozen: false }
         : null,
