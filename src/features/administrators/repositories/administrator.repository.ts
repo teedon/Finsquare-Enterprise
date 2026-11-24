@@ -1,6 +1,7 @@
 import type {
   Administrator,
   InviteAdministratorInput,
+  Member,
   Role,
   UpdateAdministratorInput,
 } from "@/types"
@@ -15,6 +16,7 @@ export interface AdministratorRepository {
     organizationId: string,
     input: InviteAdministratorInput,
   ): Promise<Administrator>
+  promoteMember(organizationId: string, member: Member, roleId: string): Promise<Administrator>
   updateAdministrator(
     organizationId: string,
     id: string,

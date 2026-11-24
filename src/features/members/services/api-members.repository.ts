@@ -102,10 +102,19 @@ export class ApiMemberRepository implements MemberRepository {
     if (input.branchId !== undefined) body.branchId = input.branchId
     if (input.groupIds !== undefined) body.groupId = input.groupIds[0]
 
-    const response = await apiClient.patch<MfiCustomerDetail>(
-      endpoints.members.detail(memberId),
-      body,
-    )
+    if (input.status !== undefined) {
+      if (input.status === "Suspended") {
+        await apiClient.post(endpoints.members.suspend(memberId))
+      } else if (input.status === "Active") {
+        await apiClient.post(endpoints.members.reactivate(memberId))
+      } else {
+        throw new Error(`Changing a member to ${input.status.toLowerCase()} is not supported.`)
+      }
+    }
+
+    const response = Object.keys(body).length
+      ? await apiClient.patch<MfiCustomerDetail>(endpoints.members.detail(memberId), body)
+      : await apiClient.get<MfiCustomerDetail>(endpoints.members.detail(memberId))
     const member = mapCustomerFields({
       id: response.id,
       fullName: response.fullName,

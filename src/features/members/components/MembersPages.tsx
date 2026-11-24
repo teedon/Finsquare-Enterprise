@@ -3,14 +3,16 @@ import { BadgeCheck, ClipboardCheck, Download, Pencil, ReceiptText, UserPlus } f
 import { ShellPage } from "@/components/layout/ShellPage"
 import { Badge, Button, Tabs } from "@/components/ui"
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/AsyncState"
+import { ConfirmDialog } from "@/components/feedback/ConfirmDialog"
 import { DataTable, type DataTableColumn } from "@/components/data-display/DataTable"
 import { FilterBar, SearchInput } from "@/components/data-display/ManagementPrimitives"
 import { Panel, PagedTable, fmtDate, money } from "@/features/loans/components/LoanUi"
 import { MemberWalletPanel } from "@/features/wallet"
 import { FrequencyBadge } from "@/features/contributions/components/ContributionUi"
 import { ParticipantStateBadge } from "@/features/dues/components/DuesUi"
-import { EditMemberModal, useMember, useMemberMoney, useMembers } from "@/features/members"
+import { EditMemberModal, useMember, useMemberMoney, useMembers, useUpdateMember } from "@/features/members"
 import { useAuthorization } from "@/features/administrators/hooks/useAuthorization"
+import { PromoteMemberModal } from "@/features/administrators/components/PromoteMemberModal"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
 import { useMemberApplications } from "../hooks/useMemberApplications"
 import { RecordMemberPayment } from "./RecordMemberPayment"
@@ -239,21 +241,57 @@ function MemberProfileBody({
 }) {
   const memberMoney = useMemberMoney({ memberId: member.id, navigate, notify })
   const { can } = useAuthorization()
+  const organizationId = useOrganizationId()
+  const { update: updateMember, busy: updatingStatus } = useUpdateMember(organizationId)
   const [tab, setTab] = useState<ProfileTab>("overview")
   const [paying, setPaying] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [promoting, setPromoting] = useState(false)
+  const [requestedStatus, setRequestedStatus] = useState<"Active" | "Suspended" | null>(null)
   const { summary, obligations } = memberMoney
   const loading = memberMoney.status === "loading"
 
   return (
     <>
-      {editing && (
-        <EditMemberModal
+      {editing && <EditMemberModal member={member} onClose={() => setEditing(false)} notify={notify} />}
+      {promoting && (
+        <PromoteMemberModal
           member={member}
-          onClose={() => setEditing(false)}
-          notify={notify}
+          onClose={() => setPromoting(false)}
+          onPromoted={() => {
+            setPromoting(false)
+            notify(`${member.name} promoted to administrator`)
+            navigate("administrators")
+          }}
         />
       )}
+      <ConfirmDialog
+        open={requestedStatus !== null}
+        title={requestedStatus === "Suspended" ? "Suspend member?" : "Reactivate member?"}
+        description={
+          requestedStatus === "Suspended"
+            ? "Suspending this member blocks their account from signing in across the platform."
+            : "Reactivating this member restores their account access."
+        }
+        confirmLabel={
+          updatingStatus ? "Saving…" : requestedStatus === "Suspended" ? "Suspend member" : "Reactivate member"
+        }
+        destructive={requestedStatus === "Suspended"}
+        onConfirm={() => {
+          if (!requestedStatus || updatingStatus) return
+          void updateMember(member.id, { status: requestedStatus }).then((updated) => {
+            if (updated) {
+              notify(requestedStatus === "Suspended" ? "Member suspended" : "Member reactivated")
+              setRequestedStatus(null)
+            } else {
+              notify("Could not update member status")
+            }
+          })
+        }}
+        onClose={() => {
+          if (!updatingStatus) setRequestedStatus(null)
+        }}
+      />
       <ShellPage
         level="detail"
         title={member.name}
@@ -275,6 +313,20 @@ function MemberProfileBody({
             {can("members.update") && (
               <Button variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>
                 Edit member
+              </Button>
+            )}
+            {can("administrators.invite") && member.status === "Active" && (
+              <Button variant="secondary" onClick={() => setPromoting(true)}>
+                Promote to administrator
+              </Button>
+            )}
+            {can("members.update") && (
+              <Button
+                variant={member.status === "Suspended" ? "secondary" : "danger"}
+                disabled={updatingStatus}
+                onClick={() => setRequestedStatus(member.status === "Suspended" ? "Active" : "Suspended")}
+              >
+                {member.status === "Suspended" ? "Reactivate member" : "Suspend member"}
               </Button>
             )}
             <Button variant="secondary" onClick={() => notify(`Statement link sent to ${member.name}`)}>

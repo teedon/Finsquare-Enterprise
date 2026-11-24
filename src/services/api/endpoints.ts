@@ -33,7 +33,8 @@ export const endpoints = {
     verifyGuarantor: (applicationId: string, guarantorId: string) =>
       `/loans/${applicationId}/guarantors/${guarantorId}/verify`,
     guarantors: (applicationId: string) => `/loans/${applicationId}/guarantors`,
-    documentReview: (applicationId: string, documentId: string) => `/loans/${applicationId}/documents/${documentId}/review`,
+    documentReview: (applicationId: string, documentId: string) =>
+      `/loans/${applicationId}/documents/${documentId}/review`,
     activeLoans: "/active-loans",
     repayments: "/repayments",
     repay: (loanId: string) => `/active-loans/${loanId}/repay`,
@@ -52,6 +53,9 @@ export const endpoints = {
     list: "/customers",
     all: "/enterprise/customers",
     detail: (memberId: string) => `/customers/${memberId}`,
+    suspend: (memberId: string) => `/customers/${memberId}/suspend`,
+    reactivate: (memberId: string) => `/customers/${memberId}/reactivate`,
+    promote: (memberId: string) => `/customers/${memberId}/promote`,
     enrol: "/customers/enrol",
     import: "/customers/import",
   },

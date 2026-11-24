@@ -1,6 +1,7 @@
 import type {
   Administrator,
   InviteAdministratorInput,
+  Member,
   Role,
   UpdateAdministratorInput,
 } from "@/types"
@@ -68,6 +69,29 @@ export class MockAdministratorRepository implements AdministratorRepository {
       status: "invited",
       accessScope: input.accessScope,
       invitedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    }
+    this.administrators.of(organizationId).unshift(administrator)
+    return structuredClone(administrator)
+  }
+
+  async promoteMember(organizationId: string, member: Member, roleId: string) {
+    if (this.administrators.of(organizationId).some((administrator) => administrator.id === member.id)) {
+      throw new Error("This member is already an administrator.")
+    }
+    this.assertRoles(organizationId, [roleId])
+    const now = new Date().toISOString()
+    const administrator: Administrator = {
+      id: member.id,
+      organizationId,
+      userId: member.id,
+      name: member.name,
+      email: member.email ?? "",
+      phone: member.phone,
+      roleIds: [roleId],
+      status: "active",
+      accessScope: { type: "organization", organizationId },
       createdAt: now,
       updatedAt: now,
     }

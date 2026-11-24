@@ -2,7 +2,7 @@ import { apiClient, endpoints } from "@/services/api"
 import { ApiError } from "@/services/api/types"
 import { roleForMfiRole, type MfiRole } from "@/features/communities/domain/mfi-membership"
 import { systemRolesFor } from "@/lib/permissions/system-roles"
-import type { Administrator, InviteAdministratorInput, Role, UpdateAdministratorInput } from "@/types"
+import type { Administrator, InviteAdministratorInput, Member, Role, UpdateAdministratorInput } from "@/types"
 import type { AdministratorRepository } from "./administrator.repository"
 
 /** `GET /staff` payload item, after the client unwraps `{ success, data }`. */
@@ -110,6 +110,11 @@ export class ApiAdministratorRepository implements AdministratorRepository {
       createdAt: response.staff.createdAt,
       updatedAt: response.staff.createdAt,
     }
+  }
+
+  async promoteMember(organizationId: string, member: Member, roleId: string): Promise<Administrator> {
+    const staff = await apiClient.post<MfiStaffDto>(endpoints.members.promote(member.id), { roleId })
+    return mapStaff(staff, organizationId)
   }
 
   async updateAdministrator(

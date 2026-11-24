@@ -1,6 +1,7 @@
 import { useAsyncResource } from "@/hooks/useAsyncResource"
 import type {
   InviteAdministratorInput,
+  Member,
   Role,
   UpdateAdministratorInput,
 } from "@/types"
@@ -37,6 +38,11 @@ export function useAdministrators(organizationId: string) {
         organizationId,
         input,
       )
+      administrators.refresh()
+      return administrator
+    },
+    promoteMember: async (member: Member, roleId: string) => {
+      const administrator = await administratorsService.promoteMember(organizationId, member, roleId)
       administrators.refresh()
       return administrator
     },
