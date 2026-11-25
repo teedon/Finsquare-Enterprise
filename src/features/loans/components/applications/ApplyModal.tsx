@@ -16,7 +16,9 @@ export function ApplyModal({ ctx, onClose }: { ctx: LoanCtx; onClose: () => void
   return (
     <Modal title="New member application" wide onClose={onClose}>
       <div className="wizard-body">
-        {!product || !form || !version ? "No published internal forms available." : (
+        {!products.length ? "No active loan types with a published internal application form are available." :
+          !data.borrowers.some((member) => member.type === "Member") ? "No active members are available for an application." :
+          !product || !form || !version ? "The selected loan type has no published application form." : (
           <>
             <label className="field">
               <span>Loan type</span>

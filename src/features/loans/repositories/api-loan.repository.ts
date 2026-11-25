@@ -71,6 +71,20 @@ interface LoanTypeDTO {
   }
 }
 
+interface EnterpriseCustomerDTO {
+  id: string
+  fullName?: string | null
+  email?: string | null
+  phoneNumber?: string | null
+  address?: string | null
+  bvn?: string | null
+  nin?: string | null
+  kycStatus?: string | null
+  joinedAt?: string | null
+  createdAt?: string | null
+  mfiMeta?: { branchName?: string | null } | null
+}
+
 interface LoanApplicationDTO {
   id: string
   amount: number
@@ -513,12 +527,13 @@ export class ApiLoanRepository implements LoanRepository {
   }
 
   async load(): Promise<LoanDataset> {
-    const [types, applicationsPage, enterprise, repaymentsPage, logs] = await Promise.all([
+    const [types, applicationsPage, enterprise, repaymentsPage, logs, customersPage] = await Promise.all([
       apiClient.get<LoanTypeDTO[]>(endpoints.loans.enterpriseTypes),
       apiClient.get<{ applications: LoanApplicationDTO[] }>(endpoints.loans.applications),
       apiClient.get<EnterpriseLoansDTO>(endpoints.loans.enterpriseLoans),
       apiClient.get<{ repayments: RepaymentDTO[] }>(endpoints.loans.repayments),
       apiClient.get<DisbursementLogDTO[]>(endpoints.loans.disbursementLogs),
+      apiClient.get<{ customers: EnterpriseCustomerDTO[] }>(endpoints.members.all),
     ])
 
     const formRecords = await Promise.all(types.map(async (type) => ({
@@ -538,10 +553,22 @@ export class ApiLoanRepository implements LoanRepository {
 
     const guarantorRequests: GuarantorRequest[] = []
     const responses = applicationsPage.applications.map(mapFormResponse).filter((r): r is FormResponse => r !== null)
-    const borrowers: Borrower[] = []
+    const borrowers: Borrower[] = customersPage.customers.map((customer): Borrower => ({
+      id: customer.id,
+      name: customer.fullName || customer.email || customer.phoneNumber || "Member",
+      phone: customer.phoneNumber ?? "",
+      email: customer.email ?? undefined,
+      type: "Member",
+      memberId: customer.id,
+      branch: customer.mfiMeta?.branchName ?? "",
+      address: customer.address ?? "",
+      occupation: "",
+      membershipMonths: 0,
+      savingsBalance: 0,
+      kycVerified: customer.kycStatus === "VERIFIED" || Boolean(customer.bvn || customer.nin),
+    }))
     const guarantors: Guarantor[] = []
     for (const dto of applicationsPage.applications) {
-      borrowers.push(borrowerFromUser(dto.user))
       for (const g of dto.guarantors ?? []) {
         guarantors.push({ id: g.userId, name: g.name, phone: "", relationship: "", type: "Member", memberId: g.userId, occupation: "" })
         guarantorRequests.push({ id: g.id ?? g.userId, applicationId: dto.id, guarantor: { id: g.userId, name: g.name, phone: "", relationship: "", type: "Member", memberId: g.userId, occupation: "" }, amount: g.guaranteeAmount ?? 0, status: g.status === "verified" || g.status === "accepted" ? "Verified" : "Pending", notes: "", documents: [], updatedAt: "" })
@@ -561,8 +588,6 @@ export class ApiLoanRepository implements LoanRepository {
         })
       }
     }
-    for (const loan of loans) borrowers.push(loan.borrower)
-
     return {
       products,
       applications,
