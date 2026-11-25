@@ -605,9 +605,10 @@ export class ApiLoanRepository implements LoanRepository {
       minMembershipDurationMonths: product.eligibility.minMembershipMonths,
       requireSavingsHistory: product.eligibility.minSavingsBalance > 0,
     }
-    const existingProduct = await apiClient.get<LoanTypeDTO | null>(endpoints.loans.type(product.id))
     let savedProduct = product
-    if (existingProduct) {
+    // New products get a temporary `lp-*` ID in the wizard. Looking that up first returns 404
+    // and prevents both product creation and saving the draft form.
+    if (!product.id.startsWith("lp-")) {
       await apiClient.put(endpoints.loans.type(product.id), payload)
     } else {
       const created = await apiClient.post<{ id: string }>(endpoints.loans.types, payload)

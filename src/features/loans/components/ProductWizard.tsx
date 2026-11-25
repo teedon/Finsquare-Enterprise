@@ -35,6 +35,7 @@ export function ProductWizard({ ctx, initial, startStep = 0, onClose }: { ctx: L
   const [version, setVersion] = useState<FormVersion>(() => workingVersion(form))
   const [step, setStep] = useState(startStep)
   const [error, setError] = useState("")
+  const [saving, setSaving] = useState(false)
   const set = <K extends keyof LoanProduct>(k: K, v: LoanProduct[K]) => setP((x) => ({ ...x, [k]: v }))
   const setE = <K extends keyof LoanProduct["eligibility"]>(k: K, v: LoanProduct["eligibility"][K]) => setP((x) => ({ ...x, eligibility: { ...x.eligibility, [k]: v } }))
   const toggle = (label: string, v: boolean, on: (b: boolean) => void) => <div className="field"><span>{label}</span><Toggle value={v} onChange={() => on(!v)} /></div>
@@ -49,15 +50,23 @@ export function ProductWizard({ ctx, initial, startStep = 0, onClose }: { ctx: L
 
   const persist = async (publish: boolean) => {
     if (!validate()) return setStep(0)
-    const product = { ...p, interestRate: p.interestType === "Zero interest" ? 0 : p.interestRate, status: publish ? p.status : initial ? p.status : ("Inactive" as const) }
-    const live = publishedVersion(form)
-    const unchanged = !!live && JSON.stringify(live.steps) === JSON.stringify(version.steps)
-    const applicationTypeChanged = !initial || initial.applicationType !== product.applicationType
-    const named = { ...form, name: form.submissions || initial ? form.name : `${p.name} application form`, productId: product.id }
-    if (publish && unchanged && !applicationTypeChanged) await service.saveProduct(product)
-    else await service.saveProductWithForm(product, named, version, publish)
-    notify(publish ? "Loan product published — new applications use the published form" : "Draft saved")
-    onClose()
+    setSaving(true)
+    setError("")
+    try {
+      const product = { ...p, interestRate: p.interestType === "Zero interest" ? 0 : p.interestRate, status: publish ? p.status : initial ? p.status : ("Inactive" as const) }
+      const live = publishedVersion(form)
+      const unchanged = !!live && JSON.stringify(live.steps) === JSON.stringify(version.steps)
+      const applicationTypeChanged = !initial || initial.applicationType !== product.applicationType
+      const named = { ...form, name: form.submissions || initial ? form.name : `${p.name} application form`, productId: product.id }
+      if (publish && unchanged && !applicationTypeChanged) await service.saveProduct(product)
+      else await service.saveProductWithForm(product, named, version, publish)
+      notify(publish ? "Loan product published — new applications use the published form" : "Draft saved")
+      onClose()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The loan type could not be saved. Please try again.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   const fromSaved = (name: string) => {
@@ -171,8 +180,8 @@ export function ProductWizard({ ctx, initial, startStep = 0, onClose }: { ctx: L
           ]} />
           <p style={{ color: "var(--muted)" }}>Publishing makes this form version live for new applications. Applications already submitted keep the version they used.</p>
           <div style={{ display: "flex", gap: 8 }}>
-            <Button variant="secondary" onClick={() => void persist(false)}>Save as draft</Button>
-            <Button onClick={() => void persist(true)}>Publish</Button>
+            <Button variant="secondary" disabled={saving} onClick={() => void persist(false)}>{saving ? "Saving…" : "Save as draft"}</Button>
+            <Button disabled={saving} onClick={() => void persist(true)}>{saving ? "Saving…" : "Publish"}</Button>
           </div>
         </Panel>
       )}
