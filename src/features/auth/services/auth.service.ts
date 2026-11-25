@@ -1,4 +1,4 @@
-import { configureApiAuth } from "@/services/api"
+import { apiClient, configureApiAuth, endpoints } from "@/services/api"
 import { env } from "@/app/config/env"
 import { ApiAuthRepository } from "../repositories/api-auth.repository"
 import { MockAuthRepository } from "../repositories/mock-auth.repository"
@@ -31,6 +31,23 @@ let accessToken: string | null = readStoredToken()
 configureApiAuth(() => accessToken)
 
 export const authService = {
+  async requestPasswordReset(identifier: string): Promise<string> {
+    const response = await apiClient.post<{ token: string }>(endpoints.auth.requestPasswordReset, { identifier })
+    return response.token
+  },
+
+  async verifyPasswordResetOtp(token: string, otp: string): Promise<void> {
+    await apiClient.post(endpoints.auth.verifyPasswordResetOtp, { token, otp })
+  },
+
+  async resendPasswordResetOtp(token: string): Promise<void> {
+    await apiClient.post(endpoints.auth.resendPasswordResetOtp, { token })
+  },
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    await apiClient.post(endpoints.auth.resetPassword, { token, password })
+  },
+
   async signIn(credentials: SignInCredentials): Promise<AuthOutcome> {
     const outcome = await repository.signIn(credentials)
     if (outcome.status === "signed-in") {

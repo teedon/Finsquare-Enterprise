@@ -675,6 +675,15 @@ html[data-theme="dark"] .toast svg { color: #0f6b4d; }
 .theme-options { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 .system-preview { background: linear-gradient(90deg, #fff 50%, #151a23 50%); }
 .field-error{color:var(--red-text);font-size:12px;display:block;margin-top:4px}
+.auth-password-input{position:relative;display:flex;align-items:center}
+.auth-password-input input{padding-right:64px!important}
+.auth-password-toggle{position:absolute;right:8px;border:0;background:transparent;color:var(--blue-text);font:inherit;font-size:12px;font-weight:650;cursor:pointer;padding:5px}
+.onb-forgot-link{display:block;margin:8px 0 0 auto}
+.onb-recovery h2{margin:8px 0;font-size:20px;color:var(--ink)}
+.onb-recovery-note{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.5}
+.onb-recovery-back{margin-top:14px}
+.onb-recovery-state{display:grid;gap:16px}
+.form-success{color:var(--green-text);font-size:13px;line-height:1.5;margin:10px 0}
 .corp-form { display: grid; gap: 22px; }
 .corp-form h4 { margin: 0 0 10px; font-size: 13px; }
 .corp-form h4 small { color: var(--muted); font-weight: 400; }
