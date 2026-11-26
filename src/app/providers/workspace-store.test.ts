@@ -374,4 +374,13 @@ describe("workspace persistence", () => {
 
     expect(loaded.communities).toHaveLength(1)
   })
+
+  it("trims the whitespace an older stored community name was saved with", () => {
+    const stored = storeWith()
+    stored.communities[0].organization = { ...stored.communities[0].organization, name: "Kogi Boys " }
+    const storage = memoryStorage()
+    persistWorkspaceStore(stored, storage)
+
+    expect(loadWorkspaceStore(storage).communities[0].organization.name).toBe("Kogi Boys")
+  })
 })

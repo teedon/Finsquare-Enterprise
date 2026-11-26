@@ -108,6 +108,7 @@ const secondaryAccess: Partial<Record<View, { module?: EnterpriseModuleId; permi
   "loan-recovery": { module: "loans", permission: "loans.recover", nav: "loans" },
   "loan-products": { module: "loans", permission: "loan_products.view", nav: "loans" },
   "loan-type-create": { module: "loans", permission: "loan_products.create", nav: "loans" },
+  "loan-product-detail": { module: "loans", permission: "loan_products.view", nav: "loans" },
   "loan-application-detail": { module: "loans", permission: "loans.view", nav: "loan-applications" },
   "loan-detail": { module: "loans", permission: "loans.view", nav: "loan-active" },
   "member-profile": { module: "members", permission: "members.view", nav: "members" },
@@ -169,6 +170,7 @@ export function settingsTabFor(view: View): View | null {
 const crumbParents: Partial<Record<View, View>> = {
   "loan-applications": "loans", "loan-active": "loans", "loan-disbursements": "loans", "loan-repayments": "loans",
   "loan-guarantors": "loans", "loan-recovery": "loans", "loan-products": "loans", "loan-type-create": "loan-products",
+  "loan-product-detail": "loan-products",
   "loan-application-detail": "loan-applications", "loan-detail": "loan-active",
   wallets: "wallet", "wallet-transactions": "wallet", "wallet-access": "wallet",
   "contribution-detail": "contributions",
@@ -184,7 +186,7 @@ const crumbParents: Partial<Record<View, View>> = {
 
 const crumbLabels: Partial<Record<View, string>> = {
   overview: "Home", "loan-repayments": "Repayments", "loan-guarantors": "Guarantors", "loan-recovery": "Recovery",
-  "loan-products": "Loan types", "loan-type-create": "Create loan type", "loan-application-detail": "Application", "loan-detail": "Loan",
+  "loan-products": "Loan types", "loan-type-create": "Create loan type", "loan-product-detail": "Loan type", "loan-application-detail": "Application", "loan-detail": "Loan",
   wallets: "Branch wallets", "wallet-transactions": "Transactions", "wallet-access": "Access & controls",
   "contribution-create": "Create contribution", "contribution-detail": "Contribution",
   "dues-detail": "Dues plan", "dues-create": "Create dues plan",

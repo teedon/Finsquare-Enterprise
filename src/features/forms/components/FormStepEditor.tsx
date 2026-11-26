@@ -32,7 +32,7 @@ export function FormStepEditor({ step, selectedFieldId, onSelectField, onChange,
         <div key={f.id} {...(f.systemField && step.kind !== "documents" ? {} : dragProps("field", f.id, drop))} onClick={() => onSelectField(f.id)}
           style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 8, cursor: "pointer", background: "var(--surface)", border: `1px solid ${f.id === selectedFieldId ? "var(--blue)" : "var(--line)"}` }}>
           {f.systemField ? <LockKeyhole size={13} /> : <GripVertical size={14} />}
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <b>{f.label}{f.required && <span style={{ color: "var(--red-text)" }}> *</span>}</b>
             <div style={{ color: "var(--muted)", fontSize: 12 }}>{typeLabel(f.type)}{f.type === "file" && f.documentConfig ? ` · ${f.documentConfig.fileTypes.join("/")} · ${f.documentConfig.maxSizeMb} MB` : ""}</div>
           </div>

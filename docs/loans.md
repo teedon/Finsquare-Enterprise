@@ -18,6 +18,7 @@ Loan type → Application → Eligibility → Guarantors → Review → Approval
 | `loan-repayments` | Repayments (sidebar item under Disbursements) |
 | `loan-guarantors`, `loan-recovery` | Reached from the Loans overview |
 | `loan-products` / `loan-type-create` | Loan types, application forms, question library. `loan-type-create` (`/loans/products/new`) opens the loan type wizard directly |
+| `loan-product-detail` | One loan type (`/loans/products/:id`), opened by clicking a row in the list. Shows its **application link** (copy / open), the loan rules, eligibility, the application form's version and question count, and who may apply. **Edit loan type** and **Edit form** open the wizard inline; `Close` returns to this page. The link field only exists once the form is published — a draft or an internal-only loan type says so instead of offering a dead link |
 | `/apply/:slug` | Public application page for external applicants |
 
 Terminology: UI says **Loan types**; code/types still say `product`.

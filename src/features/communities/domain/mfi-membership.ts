@@ -44,11 +44,13 @@ export function mapMfiMembership(community: MfiCommunityIdentity, mfiRole: MfiRo
   const str = (v: unknown): string => (typeof v === "string" ? v : "")
   return {
     organizationId: community.id,
-    name: community.name,
-    type: str(profile.type) || "MFI",
+    // The backend stores names exactly as they were typed, so "Kogi Boys " arrives with a trailing
+    // space and every sentence built around it renders "… with Kogi Boys ." Trim once, here.
+    name: community.name.trim(),
+    type: str(profile.type).trim() || "MFI",
     logo: community.logo ?? str(profile.logo),
     country: str(profile.country),
-    legalName: str(profile.legalName),
+    legalName: str(profile.legalName).trim(),
     accent: community.color ?? (str(profile.secondaryColor) || "blue"),
     profile: Object.keys(profile).length ? profile : undefined,
     roleId: community.mfiCustomRoleId ?? role.roleId,

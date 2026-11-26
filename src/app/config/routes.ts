@@ -39,6 +39,7 @@ export const viewPaths: Record<View, string> = {
   "loan-recovery": "/loans/recovery",
   "loan-products": "/loans/products",
   "loan-type-create": "/loans/products/new",
+  "loan-product-detail": "/loans/products/:id",
   "loan-disbursements": "/loans/disbursements",
   workflows: "/workflows",
   communication: "/communication",
@@ -65,6 +66,8 @@ export function resolveView(pathname: string): View {
   if (/^\/members\/applications\/[^/]+$/.test(pathname)) return "member-application-detail"
   if (pathname.startsWith("/members/")) return "member-profile"
   if (/^\/loans\/applications\/[^/]+$/.test(pathname)) return "loan-application-detail"
+  // Before the `/loans/:id` fallback: `/loans/products/<id>` is a loan type, not an active loan.
+  if (/^\/loans\/products\/[^/]+$/.test(pathname)) return "loan-product-detail"
   if (/^\/loans\/[^/]+$/.test(pathname)) return "loan-detail"
   if (/^\/contributions\/[^/]+$/.test(pathname)) return "contribution-detail"
   if (/^\/dues\/[^/]+$/.test(pathname)) return "dues-detail"

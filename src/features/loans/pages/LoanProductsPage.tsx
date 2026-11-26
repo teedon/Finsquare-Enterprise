@@ -15,7 +15,7 @@ export function LoanProductsPage(props: LoanPageProps) {
   const [editing, setEditing] = useState<{ product: LoanProduct | null; step: number } | null>(props.id === "new" ? { product: null, step: 0 } : null)
   const questionLibrary = useQuestionLibrary(organizationId)
   return (
-    <LoanPage {...props} width={props.id === "new" || editing ? "narrow" : undefined}>
+    <LoanPage {...props}>
       {(ctx) => {
         const { data, can, service, notify, navigate } = ctx
         if (editing) return <ProductWizard ctx={ctx} initial={editing.product} startStep={editing.step} onClose={() => { setEditing(null); if (props.id === "new") navigate("loan-products") }} />
@@ -27,7 +27,7 @@ export function LoanProductsPage(props: LoanPageProps) {
             <Tabs value={tab} onChange={setTab} tabs={[{ id: "products", label: "Loan types", count: data.products.length }, { id: "forms", label: "Application forms", count: data.forms.length }, { id: "library", label: "Question library", count: questionLibrary.items.filter((q) => !q.archived).length }]} />
             {tab === "products" && (
               <Panel>
-                <PagedTable rows={data.products} rowKey={(p) => p.id}
+                <PagedTable rows={data.products} rowKey={(p) => p.id} onRowClick={(p) => navigate("loan-product-detail", p.id)}
                   columns={[
                     { id: "n", header: "Product", render: (p) => <><b>{p.name}</b><div style={{ color: "var(--muted)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis" }}>{p.description}</div></> },
                     { id: "a", header: "Amount", render: (p) => `${money(p.minAmount)} – ${money(p.maxAmount)}` },
@@ -37,8 +37,8 @@ export function LoanProductsPage(props: LoanPageProps) {
                     { id: "g", header: "Guarantors", render: (p) => (p.requiresGuarantor ? p.guarantorsRequired : <Badge>None</Badge>) },
                     { id: "s", header: "Status", render: (p) => <StatusBadge status={p.status} /> },
                     { id: "x", header: "", render: (p) => (
-                      <span style={{ display: "flex", gap: 6 }}>
-                        {can("loan_products.update") && <Button variant="ghost" icon={Pencil} onClick={() => setEditing({ product: p, step: 0 })}>Edit</Button>}
+                      <span style={{ display: "flex", gap: 6 }} onClick={(event) => event.stopPropagation()}>
+                        <Button variant="ghost" onClick={() => navigate("loan-product-detail", p.id)}>Open</Button>
                         {can("loan_products.activate") && <Button variant="ghost" onClick={async () => { await service.saveProduct({ ...p, status: p.status === "Active" ? "Inactive" : "Active" }); notify(`${p.name} ${p.status === "Active" ? "deactivated" : "activated"}`) }}>{p.status === "Active" ? "Deactivate" : "Activate"}</Button>}
                       </span>) },
                   ]} />

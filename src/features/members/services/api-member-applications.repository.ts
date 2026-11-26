@@ -1,7 +1,7 @@
 import { apiClient, endpoints } from "@/services/api"
 import { ApiError } from "@/services/api/types"
 import type { FormResponseValue } from "@/features/forms/types/form.types"
-import type { MemberApplication, MemberApplicationDataset, MemberApplicationForm } from "../types/member-application.types"
+import type { MemberApplication, MemberApplicationDataset, MemberApplicationForm, PublicMemberApplicationForm } from "../types/member-application.types"
 import type { MemberApplicationRepository } from "./member-applications.repository"
 
 const listeners = new Set<() => void>()
@@ -32,9 +32,9 @@ export class ApiMemberApplicationRepository implements MemberApplicationReposito
     notify()
   }
 
-  async getPublicForm(slug: string): Promise<MemberApplicationForm | null> {
+  async getPublicForm(slug: string): Promise<PublicMemberApplicationForm | null> {
     try {
-      return await apiClient.get<MemberApplicationForm>(endpoints.memberApplications.publicForm(slug))
+      return await apiClient.get<PublicMemberApplicationForm>(endpoints.memberApplications.publicForm(slug))
     } catch (error) {
       if (error instanceof ApiError && error.code === "not_found") return null
       throw error

@@ -104,7 +104,15 @@ export function splitName(fullName: string): { firstName: string; lastName: stri
 }
 
 /** Everything the page needs to render a public form, or `null` when the link is not an active form. */
-export function buildPublicForm(dto: PublicFormDTO | null): { form: LoanApplicationForm; version: FormVersion; product: LoanProduct } | null {
+export function buildPublicForm(
+  dto: PublicFormDTO | null,
+): {
+  form: LoanApplicationForm
+  version: FormVersion
+  product: LoanProduct
+  /** The lender the link addresses. The public payload names it, so the page can show who is asking. */
+  community?: { name: string; logo: string | null }
+} | null {
   const lt = dto?.loanType
   if (!dto || !lt) return null
 
@@ -155,7 +163,7 @@ export function buildPublicForm(dto: PublicFormDTO | null): { form: LoanApplicat
     status: "Active",
     updatedAt: "",
   }
-  return { form, version, product }
+  return { form, version, product, community: dto.mfiName ? { name: dto.mfiName, logo: dto.mfiLogo } : undefined }
 }
 
 /** Turns the renderer's answers into the body `POST /public/forms/:token/submit` expects. */

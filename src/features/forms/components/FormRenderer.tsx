@@ -175,7 +175,7 @@ export function FormRenderer({ version, audience, members, loan, guarantorDocFie
           <SelectField label="Applying as (existing member) *" value={(members ?? []).find((m) => m.id === values.__member)?.name ?? ""} options={["", ...(members ?? []).filter((m) => m.type === "Member").map((m) => m.name)]} onChange={pickMember} />
         )}
         {step.kind === "personal" && audience === "External" && <div className="span-2" style={{ color: "var(--muted)" }}>No account needed — just fill in your details.</div>}
-        {step.kind === "loan" && loan && <div className="span-2" style={{ color: "var(--muted)" }}>Product: <b>{loan.name}</b> · {money(loan.minAmount)} – {money(loan.maxAmount)} · {loan.minDuration}–{loan.maxDuration} {loan.durationUnit.toLowerCase()} · {loan.interestType === "Zero interest" ? "0%" : `${loan.interestRate}% p.a.`}</div>}
+        {step.kind === "loan" && loan && <div className="span-2 form-fact-strip">Product: <b>{loan.name}</b> · {money(loan.minAmount)} – {money(loan.maxAmount)} · {loan.minDuration}–{loan.maxDuration} {loan.durationUnit.toLowerCase()} · {loan.interestType === "Zero interest" ? "0%" : `${loan.interestRate}% p.a.`}</div>}
         {step.kind === "guarantors" ? (
           Array.from({ length: slots }, (_, g) => (
             <div key={g} className="span-2" style={{ display: "contents" }}>
