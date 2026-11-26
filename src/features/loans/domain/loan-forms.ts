@@ -8,7 +8,7 @@ export const GUARANTOR_FIELDS: FormField[] = [
   f("g_name", "Full name", "short_text", true, true), f("g_phone", "Phone number", "phone", true, true), f("g_email", "Email", "email", false),
   f("g_address", "Address", "address", false), f("g_relationship", "Relationship to applicant", "short_text", true, true),
   f("g_occupation", "Occupation / business", "short_text", false), f("g_idType", "Identification type", "dropdown", false, false, ID_TYPES),
-  f("g_idNumber", "Identification number", "short_text", false), f("g_amount", "Guarantee amount", "currency", true, true),
+  f("g_idNumber", "Identification number", "short_text", false),
 ].map((x, i) => ({ ...x, order: i }))
 
 export const GUARANTOR_DOC_FIELDS: FormField[] = [
@@ -19,11 +19,12 @@ export const GUARANTOR_DOC_FIELDS: FormField[] = [
 export function systemSteps(extra: { custom?: FormStep[]; docs?: FormField[] } = {}): FormStep[] {
   const steps = [
     step("personal", "Personal Information", [
-      f("fullName", "Full name", "short_text", true, true), f("email", "Email", "email", false), f("phone", "Phone number", "phone", true, true),
-      f("dob", "Date of birth", "date", true, true), f("gender", "Gender", "dropdown", true, false, ["Male", "Female", "Other"]),
-      f("address", "Residential address", "address", true, true), f("idType", "Identification type", "dropdown", true, true, ID_TYPES),
-      f("idNumber", "Identification number", "short_text", true, true), f("emergencyName", "Emergency contact name", "short_text", false), f("emergencyPhone", "Emergency contact phone", "phone", false),
-    ], "Standard details FinSquare needs to process every loan."),
+      f("firstName", "First name", "short_text", true, true), f("lastName", "Last name", "short_text", true, true),
+      f("phone", "Phone number", "phone", true, true), f("dob", "Date of birth", "date", true, true),
+      f("street", "Street address", "short_text", true, true), f("city", "City", "short_text", true, true),
+      f("lga", "LGA", "short_text", true, true), f("state", "State", "short_text", true, true),
+      f("email", "Email", "email", false), f("gender", "Gender", "dropdown", false, false, ["Male", "Female", "Other"]),
+    ], "The details needed to process a loan application."),
     step("loan", "Loan Information", [
       f("loanAmount", "Loan amount", "currency", true, true), f("loanPurpose", "Loan purpose", "long_text", true, true), f("duration", "Requested duration", "number", true, true),
     ]),
@@ -43,27 +44,50 @@ export function newForm(product: Pick<LoanProduct, "id" | "name">): LoanApplicat
   }
 }
 
+/**
+ * The applicant's name from its two parts, falling back to a single legacy `fullName` answer so a
+ * form published before the split still maps correctly.
+ */
+export function applicantName(values: Record<string, FormResponseValue>): { firstName: string; lastName: string } {
+  const firstName = str(values["sys-firstName"]).trim()
+  const lastName = str(values["sys-lastName"]).trim()
+  if (firstName || lastName) return { firstName, lastName }
+  const parts = str(values["sys-fullName"]).trim().split(/\s+/).filter(Boolean)
+  return { firstName: parts[0] ?? "", lastName: parts.slice(1).join(" ") }
+}
+
+/**
+ * The applicant's address, from its parts, in the order a postal address reads. Falls back to the
+ * legacy single `address` answer.
+ */
+export function composeAddress(values: Record<string, FormResponseValue>): string {
+  const parts = ["sys-street", "sys-city", "sys-lga", "sys-state"].map((key) => str(values[key]).trim())
+  return parts.filter(Boolean).join(", ") || str(values["sys-address"]).trim()
+}
+
 /** Turns a submitted form into the data the loan service needs. */
 export function extractSubmission(version: FormVersion, values: Record<string, FormResponseValue>, product: LoanProduct, members: Borrower[]) {
   const sys = (k: string) => values[`sys-${k}`]
   const member = members.find((m) => m.id === values.__member)
   const custom = version.steps.filter((s) => s.kind === "custom").flatMap((s) => s.fields)
   const occupation = str(values[custom.find((x) => x.type === "short_text" && values[x.id])?.id ?? ""]) || "—"
+  const name = applicantName(values)
   const applicant: Borrower = member ?? {
-    id: mockId("b"), name: str(sys("fullName")), phone: str(sys("phone")), email: str(sys("email")) || undefined, type: "External", branch: "Online",
-    address: str(sys("address")) || "—", occupation, membershipMonths: 0, savingsBalance: 0, kycVerified: false,
+    id: mockId("b"), name: [name.firstName, name.lastName].filter(Boolean).join(" "), phone: str(sys("phone")), email: str(sys("email")) || undefined, type: "External", branch: "Online",
+    address: composeAddress(values) || "—", occupation, membershipMonths: 0, savingsBalance: 0, kycVerified: false,
   }
   const terms: LoanTerms = {
     amount: num(sys("loanAmount")), duration: num(sys("duration")), durationUnit: product.durationUnit, interestType: product.interestType, interestRate: product.interestRate,
     applicationFeePct: product.applicationFeePct, deductionModel: product.deductionModel, frequency: product.frequency, graceDays: product.graceDays,
   }
   const gStep = version.steps.find((s) => s.kind === "guarantors")
+  // The form no longer asks for an amount: a guarantor stands behind the whole loan.
   const guarantors = product.requiresGuarantor && gStep
     ? Array.from({ length: product.guarantorsRequired }, (_, i) => {
         const g = (k: string) => values[slotKey(`sys-${k}`, i)]
         return {
           guarantor: { id: mockId("g"), name: str(g("g_name")), phone: str(g("g_phone")), relationship: str(g("g_relationship")), type: (g("g_type") === "Existing member" ? "Member" : "External") as "Member" | "External", occupation: str(g("g_occupation")) || "—" },
-          amount: num(g("g_amount")),
+          amount: terms.amount,
         }
       })
     : []

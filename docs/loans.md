@@ -34,7 +34,31 @@ document requirements, question library, preview and the applicant renderer — 
 
 Each loan type has an application form with versions (Draft / Published / Archived). Submissions record the form **version** used, so later edits never change past responses (`FormResponse.versionId`). Reusable questions live in the shared question library. The renderer no longer takes a `LoanProduct`: it takes `LoanFormConfig`, which a product satisfies, so `loan={product}` is all a loan form passes to get the loan step, its limits and guarantors.
 
-**Changing anything under `features/forms/` affects member application forms too** — check `/join/:slug` and `/members/forms` alongside the loan flow.
+**Changing anything under `features/forms/` affects member application forms too** — check `/apply/:slug` and `/members/forms` alongside the loan flow.
+
+## What the form asks for by default
+
+`systemSteps()` builds the loan form, and only these facts are locked:
+
+| Step | Required (locked) | Suggested (optional, removable) |
+| --- | --- | --- |
+| Personal Information | First name, Last name, Phone number, Date of birth, Street address, City, LGA, State | Email, Gender |
+| Loan Information | Loan amount, Loan purpose, Requested duration | — |
+| Guarantors | Guarantor type, Full name, Phone number, Relationship | Email, Address, Occupation, Identification type, Identification number |
+
+Identification type/number and the emergency contact pair are **not** on the loan form. A guarantor has no
+guarantee amount: a guarantor stands behind the whole loan, so `extractSubmission` records the loan amount
+on each guarantor.
+
+**Requested duration is a pick, not a number.** The loan type owns `minDuration`–`maxDuration` and
+`durationUnit`, and the renderer turns that range into a dropdown (1–12 Months → 1…12). The stored answer
+is still a numeral, so the min/max check in `FormRenderer` and `num()` in both submission mappers keep
+working; the field stays `type: "number"` in the schema for that reason and only its presentation changes.
+
+**Compatibility with published versions.** Name and address are collected in parts, but older published
+versions carry a single `fullName`/`address`. `applicantName` and `composeAddress` in
+`domain/loan-forms.ts` read the parts and fall back to the legacy keys, and both `extractSubmission` and
+`buildPublicPayload` use them — so a submitted old-style form still maps correctly.
 
 ## Disbursement
 `DisbursementModal` always uses the main wallet (`defaultDisbursementWallet`). Amount-based approval rules (maker-checker) are configured under Wallet. Money movement honours `moneyMovementMode`.

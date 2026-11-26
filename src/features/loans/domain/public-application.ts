@@ -2,7 +2,7 @@ import { customStep, num, renumber, slotKey, str } from "@/features/forms/domain
 import type { FormField, FormFieldType, FormResponseValue, FormVersion } from "@/features/forms/types/form.types"
 import type { LoanApplicationForm } from "../types/form.types"
 import type { DurationUnit, LoanProduct } from "../types/loan.types"
-import { systemSteps } from "./loan-forms"
+import { applicantName, composeAddress, systemSteps } from "./loan-forms"
 
 /**
  * The backend's public application form (`GET /public/forms/:token`) and the translation between it
@@ -96,13 +96,6 @@ function toField(dto: PublicFormFieldDTO, order: number): FormField | null {
   }
 }
 
-/** Splits a full name; the backend needs both parts, so a single name is used for each. */
-export function splitName(fullName: string): { firstName: string; lastName: string } {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean)
-  const firstName = parts[0] ?? ""
-  return { firstName, lastName: parts.slice(1).join(" ") || firstName }
-}
-
 /** Everything the page needs to render a public form, or `null` when the link is not an active form. */
 export function buildPublicForm(
   dto: PublicFormDTO | null,
@@ -169,7 +162,9 @@ export function buildPublicForm(
 /** Turns the renderer's answers into the body `POST /public/forms/:token/submit` expects. */
 export function buildPublicPayload(version: FormVersion, product: LoanProduct, values: Record<string, FormResponseValue>): PublicApplicationPayload {
   const sys = (k: string) => str(values[`sys-${k}`]).trim()
-  const { firstName, lastName } = splitName(sys("fullName"))
+  // The form collects the name and address in parts; older published forms carry the single fields.
+  const { firstName, lastName } = applicantName(values)
+  const address = composeAddress(values)
 
   const customFields: Record<string, FormResponseValue> = {}
   for (const field of version.steps.filter((s) => s.kind === "custom").flatMap((s) => s.fields)) {
@@ -200,7 +195,7 @@ export function buildPublicPayload(version: FormVersion, product: LoanProduct, v
       phoneNumber: sys("phone"),
       dob: sys("dob") || undefined,
       gender: sys("gender") || undefined,
-      address: sys("address") || undefined,
+      address: address || undefined,
       nin: sys("idType") === NIN_ID_TYPE ? sys("idNumber") || undefined : undefined,
     },
     customFields,

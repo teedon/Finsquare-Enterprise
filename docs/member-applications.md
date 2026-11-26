@@ -36,7 +36,7 @@ Rules live in `services/question-library.service.ts`: `create` trims and rejects
 
 `memberSystemSteps()` builds the form. **Full name** and **phone number** are `locked`: the builder cannot delete them or make them optional, and they are the two fields no member record can be created without. Email, gender, address, NIN and BVN are included but optional and removable.
 
-The badge distinguishes the two: **Required by FinSquare** (locked) versus **Included by FinSquare** (a system field the organization may drop) versus **Added by organization**.
+The badge names the three standings, and the same labels appear in the loan form builder: **Required** (locked — cannot be deleted or made optional) versus **Suggested** (supplied by the platform, optional, and removable) versus **Custom** (added by the organization).
 
 There is no branch or group question on the form. The group a new member joins is a **publishing setting** (`groupId`), chosen from the real groups in `features/groups`, because `CreateMemberInput.groupIds` needs at least one and an applicant cannot reasonably pick an internal group. The member's branch stays unset until someone edits the member.
 

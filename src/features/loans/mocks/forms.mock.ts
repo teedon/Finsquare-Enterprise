@@ -68,16 +68,16 @@ export function createResponsesMock(apps: LoanApplication[], forms: LoanApplicat
       s.fields.forEach((fl) => {
         const sf = fl.systemField
         let v: FormResponse["values"][string] | undefined
-        if (sf === "fullName") v = a.name
+        if (sf === "firstName") v = a.name.split(" ")[0]
+        else if (sf === "lastName") v = a.name.split(" ").slice(1).join(" ")
         else if (sf === "email") v = a.email ?? ""
         else if (sf === "phone") v = a.phone
         else if (sf === "dob") v = "1988-04-12"
         else if (sf === "gender") v = ["b-1", "b-2", "b-5", "b-7"].includes(a.id) ? "Male" : "Female"
-        else if (sf === "address") v = a.address
-        else if (sf === "idType") v = "National ID (NIN)"
-        else if (sf === "idNumber") v = `1234${a.id.replace(/\D/g, "")}7890`
-        else if (sf === "emergencyName") v = "Ibrahim " + a.name.split(" ")[1]
-        else if (sf === "emergencyPhone") v = "+234 803 000 1122"
+        else if (sf === "street") v = a.address
+        else if (sf === "city") v = "Ikeja"
+        else if (sf === "lga") v = "Ikeja"
+        else if (sf === "state") v = "Lagos"
         else if (sf === "loanAmount") v = app.terms.amount
         else if (sf === "loanPurpose") v = app.purpose
         else if (sf === "duration") v = app.terms.duration
@@ -93,7 +93,7 @@ export function createResponsesMock(apps: LoanApplication[], forms: LoanApplicat
     gs.forEach((r, i) => {
       const set = (k: string, v: string | number) => (values[`sys-${k}#${i}`] = v)
       set("g_type", r.guarantor.type === "Member" ? "Existing member" : "External person"); set("g_name", r.guarantor.name); set("g_phone", r.guarantor.phone)
-      set("g_relationship", r.guarantor.relationship); set("g_occupation", r.guarantor.occupation); set("g_amount", r.amount)
+      set("g_relationship", r.guarantor.relationship); set("g_occupation", r.guarantor.occupation)
     })
     if (a.type === "Member") values.__member = a.id
     return [{ id: `resp-${app.id}`, applicationId: app.id, formId: form.id, versionId: version.id, versionNumber: version.version, applicantType: a.type === "Member" ? "Internal" : "External", submittedAt: app.submittedAt, values } as FormResponse]

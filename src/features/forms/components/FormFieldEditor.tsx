@@ -49,15 +49,15 @@ export function FormFieldEditor({ field, onChange, onDelete, onDuplicate, onSave
   }
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      <span style={{ fontSize: 12, color: sys ? "var(--blue-text)" : "var(--purple-text)" }}>{field.locked ? "Required by FinSquare" : sys ? "Included by FinSquare" : "Added by organization"}{field.questionLibraryId ? " · from library" : ""}</span>
+      <span style={{ fontSize: 12, color: field.locked ? "var(--blue-text)" : sys ? "var(--purple-text)" : "var(--muted)" }}>{field.locked ? "Required" : sys ? "Suggested" : "Custom"}{field.questionLibraryId ? " · from library" : ""}</span>
       <Field label="Question" value={field.label} onChange={(label) => onChange({ ...field, label })} />
       {sys ? (
-        <div style={{ color: "var(--muted)" }}>Field type: {typeLabel(field.type)} (fixed)</div>
+        <div style={{ color: "var(--muted)" }}>Field type: {field.systemField === "duration" ? "Dropdown (from the loan type)" : `${typeLabel(field.type)} (fixed)`}</div>
       ) : (
         <SelectField label="Field type" value={typeLabel(field.type)} options={FIELD_TYPES.map((t) => t.label)} onChange={(l) => setType(FIELD_TYPES.find((t) => t.label === l)!.id)} />
       )}
       <div className="field">
-        <span>Required {field.locked && "(required by FinSquare)"}</span>
+        <span>Required</span>
         <Toggle value={field.required} onChange={() => !field.locked && onChange({ ...field, required: !field.required })} />
       </div>
       <TextArea label="Description / helper text" value={field.description ?? ""} onChange={(description) => onChange({ ...field, description })} placeholder="Optional" />
@@ -68,7 +68,7 @@ export function FormFieldEditor({ field, onChange, onDelete, onDuplicate, onSave
           <Button variant="secondary" onClick={async () => { await onSaveToLibrary(cat); setSaved(true) }}>{saved ? "Saved to library" : "Save to library"}</Button>
         </div>
       )}
-      {!sys && <div style={{ display: "flex", gap: 6 }}><Button variant="ghost" onClick={onDuplicate}>Duplicate</Button><Button variant="ghost" onClick={onDelete}>Delete</Button></div>}
+      {!field.locked && <div style={{ display: "flex", gap: 6 }}><Button variant="ghost" onClick={onDuplicate}>Duplicate</Button><Button variant="ghost" onClick={onDelete}>Delete</Button></div>}
     </div>
   )
 }

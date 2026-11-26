@@ -53,7 +53,11 @@ export function FormBuilder({ version, audiences = ["External"], preview, librar
     setSteps([...steps.slice(0, at), s, ...steps.slice(at)])
     setStepId(s.id); setFieldId(null)
   }
-  const removeField = () => { if (field) { setStep({ ...step, fields: step.fields.filter((x) => x.id !== field.id) }); setFieldId(null) } }
+  const removeFieldById = (id: string) => {
+    setStep({ ...step, fields: step.fields.filter((x) => x.id !== id) })
+    if (fieldId === id) setFieldId(null)
+  }
+  const removeField = () => { if (field) removeFieldById(field.id) }
 
   return (
     <Panel flush={false}>
@@ -87,7 +91,8 @@ export function FormBuilder({ version, audiences = ["External"], preview, librar
             <FormStepEditor step={step} selectedFieldId={fieldId} onSelectField={setFieldId} onChange={setStep}
               onAddQuestion={() => addFields([qf("Untitled question", "short_text", false)])}
               onAddFromLibrary={() => setPicker(true)}
-              onAddDocument={() => addFields([doc("New document", false)])} />
+              onAddDocument={() => addFields([doc("New document", false)])}
+              onDeleteField={removeFieldById} />
             <div className="form-builder-settings">
               <b>{field ? "Question settings" : "Step settings"}</b>
               {field ? (
@@ -107,7 +112,7 @@ export function FormBuilder({ version, audiences = ["External"], preview, librar
                   </div>
                 </div>
               ) : (
-                <div style={{ color: "var(--muted)" }}>This step is required by FinSquare and can’t be renamed, moved or removed. Select a question to change what’s required.</div>
+                <div style={{ color: "var(--muted)" }}>This step comes with the form. You can move it and change its questions, but not its name.</div>
               )}
               {!field && stepNote?.(step)}
             </div>
