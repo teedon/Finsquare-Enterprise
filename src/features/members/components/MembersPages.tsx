@@ -571,6 +571,7 @@ function MemberProfileBody({
           walletBalance={memberMoney.wallet?.availableBalance ?? 0}
           hasWallet={Boolean(memberMoney.wallet)}
           mode={memberMoney.mode}
+          canTakeCash={can("wallet.cash")}
           pay={memberMoney.pay}
           onClose={() => setPaying(false)}
           notify={notify}

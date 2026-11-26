@@ -6,6 +6,8 @@ import { duesService } from "@/features/dues/services/dues.service"
 import { todayISO } from "@/features/loans/domain/calculations"
 import { loansService } from "@/features/loans/services/loans.service"
 import { walletServiceFor } from "@/features/wallet/services/wallet.service"
+import { cashService } from "@/features/wallet/services/cash.service"
+import type { CashReceipt, CashReceiptItem } from "@/features/wallet/types/cash.types"
 import type { ContributionPaymentMethodId } from "@/features/contributions/types/contribution.types"
 import type { RepaymentMethod } from "@/features/loans/types/loan.types"
 import type { MemberObligation } from "../domain/member-obligations"
@@ -38,6 +40,8 @@ export interface MemberPaymentInput {
   memberName: string
   items: MemberPaymentItem[]
   method: MemberPaymentMethod
+  /** Cash only: what the member handed over. Defaults to the amount applied; the rest is change. */
+  cashReceived?: number
   note?: string
 }
 
@@ -45,6 +49,12 @@ export interface MemberPaymentResult {
   recorded: number
   total: number
   simulated: boolean
+  /** Set when cash was taken and the cash ledger accepted the receipt. */
+  cashReceipt?: CashReceipt
+  /** False when cash was taken but this install has no cash ledger to put it in. */
+  cashTracked: boolean
+  /** Why the cash was not tracked, so the surface can say it rather than imply the books are whole. */
+  cashError?: string
 }
 
 /**
@@ -60,6 +70,7 @@ export class MemberPaymentsService {
     private contributions = contributionsService,
     private loans = loansService,
     private dues = duesService,
+    private cash = cashService,
   ) {}
 
   async recordPayment(
@@ -70,6 +81,8 @@ export class MemberPaymentsService {
     const date = todayISO()
     let total = 0
     let recorded = 0
+    /** What the obligations actually took, so the receipt lists what was settled rather than what was asked. */
+    const settledItems: CashReceiptItem[] = []
 
     for (const { obligation, amount } of input.items) {
       if (amount <= 0) continue
@@ -89,6 +102,14 @@ export class MemberPaymentsService {
           ctx,
         )
         if (!transaction) continue
+        settledItems.push({
+          kind: "Contribution",
+          id: obligation.contributionId,
+          participantId: obligation.participantId,
+          periodKey: obligation.periodKey,
+          label: obligation.title,
+          amount,
+        })
       } else if (obligation.kind === "Dues") {
         if (!obligation.duesPlanId) continue
         // The dues service owns the rule that a wallet payment is debited before it is recorded,
@@ -106,6 +127,13 @@ export class MemberPaymentsService {
           ctx,
         )
         if (!transaction) continue
+        settledItems.push({
+          kind: "Dues",
+          id: obligation.duesPlanId,
+          participantId: obligation.participantId,
+          label: obligation.title,
+          amount,
+        })
       } else {
         if (!obligation.loanId) continue
         if (input.method === "wallet") {
@@ -136,13 +164,45 @@ export class MemberPaymentsService {
           reference: "",
           note: input.note,
         })
+        settledItems.push({
+          kind: "Loan",
+          id: obligation.loanId,
+          label: obligation.title,
+          amount,
+        })
       }
 
       total += amount
       recorded += 1
     }
 
-    return { recorded, total: Math.round(total * 100) / 100, simulated: ctx.mode !== "live" }
+    const rounded = Math.round(total * 100) / 100
+    if (input.method !== "cash" || recorded === 0) {
+      return { recorded, total: rounded, simulated: ctx.mode !== "live", cashTracked: true }
+    }
+
+    // Cash is already in hand, so it is recorded, not moved: credit the member's wallet with it,
+    // settle the obligations from that balance, and hold the rest in the cash drawer. A backend that
+    // has no cash ledger yet must not lose the payment that was just recorded, so the failure is
+    // reported instead of thrown.
+    const received = input.cashReceived !== undefined ? Math.round(input.cashReceived * 100) / 100 : rounded
+    try {
+      const cashReceipt = await this.cash.receive(
+        organizationId,
+        { memberId: input.memberId, memberName: input.memberName, amount: received, items: settledItems, note: input.note },
+        ctx.actor,
+        ctx.mode,
+      )
+      return { recorded, total: rounded, simulated: ctx.mode !== "live", cashReceipt, cashTracked: true }
+    } catch (cause) {
+      return {
+        recorded,
+        total: rounded,
+        simulated: ctx.mode !== "live",
+        cashTracked: false,
+        cashError: cause instanceof Error ? cause.message : "The cash receipt could not be recorded.",
+      }
+    }
   }
 }
 

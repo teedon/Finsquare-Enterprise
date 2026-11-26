@@ -27,6 +27,36 @@ is a `type: "Dues"` transaction carrying `related.duesId`, and it draws on the m
 it announces credited wallets through `walletService.onWalletsCredited`, and the dues service
 collects what it is owed. `TransactionType` includes `"Dues"` for exactly this reason.
 
+## Cash on hand
+Money a member pays at the counter is real money that never touches the bank, so it cannot enter the
+bank balance and cannot be settled by a wallet debit that pretends it arrived digitally.
+
+Cash is an ordinary `Wallet` with `type: "Cash"` (`CASH_WALLET_NAME = "Cash on hand"`), created on
+demand by `walletService.ensureCashWallet`. It is deliberately **excluded from `WALLET_TYPES`** so it
+never appears in the create-wallet form, and `syncAccount` leaves it out of the community's bank
+balance — the account figure is money the bank holds, the cash figure is money in the drawer.
+
+`CashService` (`services/cash.service.ts`) owns the two operations:
+
+- **`receive`** — one commit that credits the member's wallet with what they handed over
+  (`Cash Receipt`), debits that wallet for each obligation settled (`Dues`, `Contribution`,
+  `Loan Repayment`), credits the cash wallet, writes the `CashReceipt` record and three audit rows.
+  Overpaying the amount applied is normal change: the full amount is received, only the obligations
+  are settled, and the difference stays in the member's wallet.
+- **`depositToBank`** — moves cash into a community bank wallet as `Cash Deposit` transactions. It
+  changes where the money is, never how much exists, and it requires a bank reference so the deposit
+  can be matched on a statement. Banking cash needs no second approver.
+
+The receipt is a historical record: `amount`, `settled`, `items` and `receivedBy` are stored, not
+recomputed, so reading an obligation back later cannot rewrite what was taken.
+
+`domain/cash.rules.ts` holds the pure parts (`changeOf`, `settledOf`, `isCashWallet`, `cashWalletOf`,
+`receivedOn`) and is unit-tested there.
+
+Recording cash is a money action *and* a permission: `wallet.cash`. `RecordMemberPayment` only offers
+the Cash method when the administrator holds it, which keeps the payment permission separate from the
+right to hold the organization's cash.
+
 ## Transfers
 `TransferModal` — account number (10 digits), bank, amount, narration, 4-digit PIN. Internal accounts resolve to a wallet and move instantly; external transfers create a Processing (or Completed in simulation) debit. Validation by zod `transferOutSchema`; limits and status checks in `service.checkOutflow`. There is no stored PIN to compare against in the mock, so any 4 digits are accepted and **the backend must verify the PIN and rate-limit attempts** in production.
 

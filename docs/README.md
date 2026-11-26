@@ -54,6 +54,7 @@ React 19, TypeScript (strict), Vite, Tailwind v4 (plus a large hand-written `src
 14. A member is created by `membersService.create` and nothing else. Approving an application, open joining and manual add all go through it, so there is one way a member record appears.
 15. A wallet lien is a **claim on the member's own wallet**, never a second ledger and never a reservation: dues are only ever deducted when the money is actually there, and never more than the amount owed. Recovery is capped, oldest due first, and refuses to run twice for the same scope. See `dues.md`.
 16. A **community is the tenant**, and the tenant is state: one slice per community in `WorkspaceProvider`, `useOrganizationId()` at the call site, and the role you hold in the active community drives the permission checks. Nothing pins a tenant with a constant. See `communities.md` and `decisions/014-communities-and-active-tenant.md`.
+17. **Cash is a wallet, not a payment method.** Money taken at the counter lives in a `type: "Cash"` wallet that `syncAccount` excludes from the bank balance; taking it is one commit (credit the member wallet, settle the obligations, credit the cash wallet, write the receipt and audit); banking it is a cash→bank transfer that needs a bank reference. See `wallet.md` and `decisions/015-cash-on-hand.md`.
 
 ## Known gaps / assumptions
 - No automated browser E2E tests; verification is `tsc` + Vitest, plus manual or Playwright MCP browser checks.

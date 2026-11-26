@@ -31,7 +31,7 @@ import {
   RecoveryPage,
   RepaymentsPage,
 } from "@/features/loans"
-import { AccessControls, TransactionTable, WalletList, WalletOverview, WalletPage } from "@/features/wallet"
+import { AccessControls, TransactionTable, WalletActivity, WalletList, WalletOverview, WalletPage } from "@/features/wallet"
 import ReportsPage from "@/features/reports/pages/ReportsPage"
 import OrganizationProfilePage from "@/features/organization/components/OrganizationProfile"
 import OnboardingFlow from "@/features/onboarding/components/OnboardingFlow"
@@ -258,6 +258,8 @@ export default function FinSquareApp() {
             <WalletList ctx={ctx} />
           ) : view === "wallet-transactions" ? (
             <TransactionTable ctx={ctx} />
+          ) : view === "wallet-activity" ? (
+            <WalletActivity ctx={ctx} />
           ) : (
             <AccessControls ctx={ctx} />
           )

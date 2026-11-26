@@ -72,6 +72,7 @@ export const PERMISSIONS = [
   "wallet.approve_transfer",
   "wallet.reverse",
   "wallet.export",
+  "wallet.cash",
   "wallet.manage_access",
   "wallet.manage_limits",
   "wallet.manage",

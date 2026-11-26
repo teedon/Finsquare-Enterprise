@@ -1,4 +1,5 @@
 import type { Permission } from "@/types"
+import type { CashReceipt } from "./cash.types"
 
 export type WalletPermission = Extract<Permission, `wallet.${string}`>
 export const WALLET_PERMISSIONS: { id: WalletPermission; label: string }[] = [
@@ -15,8 +16,8 @@ export const WALLET_PERMISSIONS: { id: WalletPermission; label: string }[] = [
   { id: "wallet.export", label: "Export" },
 ]
 
-export type WalletType = "Main Organization" | "Branch" | "Operational" | "Loan" | "Member" | "Custom"
-/** Selectable when an administrator creates a wallet. `Member` wallets are opened by the member. */
+export type WalletType = "Main Organization" | "Branch" | "Operational" | "Loan" | "Member" | "Cash" | "Custom"
+/** Selectable when an administrator creates a wallet. `Member` and `Cash` wallets are opened by the app. */
 export const WALLET_TYPES: WalletType[] = ["Main Organization", "Branch", "Operational", "Loan", "Custom"]
 /**
  * Organization wallets are scoped to the organization or a branch. `member` wallets hold one
@@ -86,8 +87,8 @@ export interface WalletAccess {
   permissions: WalletPermission[]
 }
 
-export type TransactionType = "Funding" | "Loan Disbursement" | "Loan Repayment" | "Transfer" | "Withdrawal" | "Contribution" | "Dues" | "Payment" | "Adjustment" | "Fee" | "Refund"
-export const TRANSACTION_TYPES: TransactionType[] = ["Funding", "Loan Disbursement", "Loan Repayment", "Transfer", "Withdrawal", "Contribution", "Dues", "Payment", "Adjustment", "Fee", "Refund"]
+export type TransactionType = "Funding" | "Loan Disbursement" | "Loan Repayment" | "Transfer" | "Withdrawal" | "Contribution" | "Dues" | "Payment" | "Adjustment" | "Fee" | "Refund" | "Cash Receipt" | "Cash Deposit"
+export const TRANSACTION_TYPES: TransactionType[] = ["Funding", "Loan Disbursement", "Loan Repayment", "Transfer", "Withdrawal", "Contribution", "Dues", "Payment", "Adjustment", "Fee", "Refund", "Cash Receipt", "Cash Deposit"]
 export type TransactionStatus = "Pending" | "Processing" | "Completed" | "Failed" | "Reversed" | "Cancelled"
 export const TRANSACTION_STATUSES: TransactionStatus[] = ["Pending", "Processing", "Completed", "Failed", "Reversed", "Cancelled"]
 
@@ -213,6 +214,8 @@ export interface WalletDataset {
   rules: ApprovalRule[]
   audit: WalletAuditLog[]
   fundingMethods: FundingMethod[]
+  /** Cash taken at the counter, newest first. Held here because a receipt is part of the ledger. */
+  receipts: CashReceipt[]
 }
 
 export interface Actor {

@@ -125,6 +125,7 @@ const dataset = (overrides: Partial<WalletDataset> = {}): WalletDataset => ({
   rules: [],
   audit: [],
   fundingMethods: [],
+  receipts: [],
   ...overrides,
 })
 

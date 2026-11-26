@@ -21,6 +21,7 @@ export const viewPaths: Record<View, string> = {
   "wallets": "/wallet/wallets",
   "wallet-transactions": "/wallet/transactions",
   "wallet-access": "/wallet/access",
+  "wallet-activity": "/wallet/activity",
   contributions: "/contributions",
   "contribution-create": "/contributions/new",
   "contribution-detail": "/contributions/:id",

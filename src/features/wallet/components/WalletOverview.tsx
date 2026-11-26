@@ -7,6 +7,7 @@ import { apiClient, endpoints } from "@/services/api"
 import { PagedTable, Panel, compactMoney, fmtDate } from "@/features/loans/components/LoanUi"
 import FundWallet from "./FundWallet"
 import TransferModal from "./TransferModal"
+import CashPanel from "./CashPanel"
 import { TxStatusBadge, WalletStatusBadge, balanceOf, money, type WalletCtx } from "./WalletShell"
 import { isMemberWallet } from "../domain/wallet.rules"
 
@@ -204,6 +205,7 @@ export default function WalletOverview({ ctx }: { ctx: WalletCtx }) {
           />
         </Panel>
         <div className="wallet-links">
+          <CashPanel ctx={ctx} />
           {pending.length > 0 && (
             <button
               type="button"
@@ -246,6 +248,13 @@ export default function WalletOverview({ ctx }: { ctx: WalletCtx }) {
             <div>
               <b>Access &amp; controls</b>
               <small>Who can use the wallet, limits, approvals</small>
+            </div>
+            <ChevronRight size={15} />
+          </button>
+          <button type="button" className="wallet-link" onClick={() => navigate("wallet-activity")}>
+            <div>
+              <b>Activity &amp; audit trail</b>
+              <small>Who moved or received money, and when</small>
             </div>
             <ChevronRight size={15} />
           </button>

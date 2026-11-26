@@ -20,6 +20,7 @@ const emptyDataset = (): WalletDataset => {
     rules: [],
     audit: [],
     fundingMethods: [],
+    receipts: [],
     account: {
       ...seeded.account,
       verificationStatus: "Unverified",
