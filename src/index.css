@@ -173,7 +173,7 @@ html[data-theme="dark"] .brand-logo-dark { display: block; }
 .mode-banner.live { background: var(--surface-soft); border-color: var(--line); }
 
 .page { padding: 26px 28px 70px; max-width: 1500px; margin: 0 auto; }
-.page-narrow { max-width: 720px; }
+.page-narrow { max-width: 880px; }
 .page-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
 .page-title { font-size: 21px; line-height: 1.2; font-weight: 680; letter-spacing: -.03em; }
 .page-description { margin-top: 5px; color: var(--muted); font-size: 14px; }
@@ -597,7 +597,7 @@ html[data-theme="dark"] .toast svg { color: #0f6b4d; }
   .access-editor{grid-template-columns:1fr 1fr}
 }
 @media(max-width:600px){
-  .signup-top{padding:0 18px}.signup-secure{display:none}.signup-form{padding:38px 20px}.form-grid{grid-template-columns:1fr}.span-2{grid-column:auto}.page-header,.profile-head{align-items:flex-start;flex-direction:column}.header-actions{width:100%;overflow-x:auto}.mode-banner{align-items:flex-start;gap:6px;padding:8px 12px}.mode-banner>div{align-items:flex-start}.mode-banner span{line-height:1.4}.mode-banner .btn{display:none}.stat-grid{grid-template-columns:1fr 1fr}.dashboard-grid{grid-template-columns:1fr}.quick-grid{grid-template-columns:1fr}.financial-summary,.summary-strip,.config-grid,.config-grid.loan,.ready-summary{grid-template-columns:1fr 1fr}.financial-summary>div,.summary-strip>div{border-bottom:1px solid var(--line)}.scheme-footer{align-items:flex-start;flex-direction:column;gap:7px;padding:10px}.scheme-footer .btn{margin:0}.access-cards,.preset-row{grid-template-columns:1fr}.access-cards>div,.preset-row>div{border-right:0;border-bottom:1px solid var(--line)}.table-toolbar{align-items:stretch;flex-direction:column}.search{width:100%}.toolbar-right{justify-content:space-between}.compliance-sections{grid-template-columns:1fr}.document-row{align-items:flex-start;flex-wrap:wrap}.doc-actions{width:100%;margin:0 0 0 39px}.detail-grid{grid-template-columns:1fr}.permission-head,.permission-row{grid-template-columns:1fr 105px}.permission-head span:last-child,.permission-row>span{display:none}.journey-control{right:10px;bottom:10px}.journey-trigger>span{display:none}.journey-popover{width:calc(100vw - 20px);position:fixed;left:10px;right:10px;bottom:54px}.modal-backdrop{padding:0;align-items:flex-end}.modal{width:100%;max-height:94vh;border-radius:10px 10px 0 0}.step div{display:none}.activation-list{grid-template-columns:1fr}.form-paper{width:calc(100% - 20px)}.blocked-note{align-items:flex-start;flex-wrap:wrap}.blocked-note .btn{width:100%}
+  .signup-top{padding:0 18px}.signup-secure{display:none}.signup-form{padding:38px 20px}.form-grid{grid-template-columns:1fr}.span-2{grid-column:auto}.page-header,.profile-head{align-items:flex-start;flex-direction:column}.header-actions{width:100%;flex-wrap:wrap;overflow:visible}.mode-banner{align-items:flex-start;gap:6px;padding:8px 12px}.mode-banner>div{align-items:flex-start}.mode-banner span{line-height:1.4}.mode-banner .btn{display:none}.stat-grid{grid-template-columns:1fr 1fr}.dashboard-grid{grid-template-columns:1fr}.quick-grid{grid-template-columns:1fr}.financial-summary,.summary-strip,.config-grid,.config-grid.loan,.ready-summary{grid-template-columns:1fr 1fr}.financial-summary>div,.summary-strip>div{border-bottom:1px solid var(--line)}.scheme-footer{align-items:flex-start;flex-direction:column;gap:7px;padding:10px}.scheme-footer .btn{margin:0}.access-cards,.preset-row{grid-template-columns:1fr}.access-cards>div,.preset-row>div{border-right:0;border-bottom:1px solid var(--line)}.table-toolbar{align-items:stretch;flex-direction:column}.search{width:100%}.toolbar-right{justify-content:space-between}.compliance-sections{grid-template-columns:1fr}.document-row{align-items:flex-start;flex-wrap:wrap}.doc-actions{width:100%;margin:0 0 0 39px}.detail-grid{grid-template-columns:1fr}.permission-head,.permission-row{grid-template-columns:1fr 105px}.permission-head span:last-child,.permission-row>span{display:none}.journey-control{right:10px;bottom:10px}.journey-trigger>span{display:none}.journey-popover{width:calc(100vw - 20px);position:fixed;left:10px;right:10px;bottom:54px}.modal-backdrop{padding:0;align-items:flex-end}.modal{width:100%;max-height:94vh;border-radius:10px 10px 0 0}.step div{display:none}.activation-list{grid-template-columns:1fr}.form-paper{width:calc(100% - 20px)}.blocked-note{align-items:flex-start;flex-wrap:wrap}.blocked-note .btn{width:100%}
   .management-summary{grid-template-columns:1fr 1fr}.management-filters{width:100%;margin-left:0;overflow-x:auto}.management-filters select{min-width:140px}.inline-add-control{width:100%;align-items:stretch;flex-direction:column}.inline-add-control .field{min-width:0}.permission-domain>div:last-child{grid-template-columns:1fr}.branch-tree-children{margin-left:12px;padding-left:10px}
   .access-editor{grid-template-columns:1fr}
 }
@@ -814,10 +814,43 @@ html[data-theme="dark"] .toast svg { color: #0f6b4d; }
 .recipient-chip { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface-soft); color: var(--blue-text); margin-bottom: 12px; }
 .recipient-chip b { display: block; font-size: 13px; color: var(--ink); }
 .recipient-chip small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
-.public-contribution { min-height: 100vh; display: flex; justify-content: center; padding: 40px 20px 60px; background: radial-gradient(900px 420px at 50% -160px, var(--blue-soft), transparent 72%), var(--surface-soft); }
-.public-contribution-card { width: 100%; max-width: 620px; }
-.public-contribution-head { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-.public-contribution-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+/* Public links (/apply, /join, /contribute): no shell, no sidebar, so the page supplies its own
+   background, identity block and breathing room. The card is the only surface, and the form
+   renderer inside it is shared with the in-app builder — the extra spacing is scoped to it. */
+.public-page { min-height: 100vh; padding: 40px 20px 56px; background: radial-gradient(900px 420px at 50% -160px, var(--blue-soft), transparent 72%), var(--surface-soft); }
+.public-page-column { width: 100%; max-width: 760px; margin: 0 auto; display: grid; gap: 22px; }
+.public-identity { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; }
+.public-identity-who { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.public-identity-who b { font-size: 15px; font-weight: 650; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.public-identity-platform { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.public-intro { display: grid; gap: 7px; }
+.public-purpose { color: var(--blue-text); font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+.public-intro h1 { margin: 0; font-size: 26px; line-height: 1.2; font-weight: 700; letter-spacing: -.03em; overflow-wrap: anywhere; }
+.public-intro p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 64ch; }
+.public-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+
+/* What the applicant is applying for, above the amount and duration they then choose. */
+.form-fact-strip { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); color: var(--muted); font-size: 13px; line-height: 1.5; }
+.form-fact-strip b { color: var(--ink); }
+.public-card .form-grid { gap: 18px 20px; }
+.public-card h3 + .form-grid, .public-card h3 + p + .form-grid { margin-top: 12px; }
+.public-card h3 { margin: 0 0 6px; font-size: 17px; letter-spacing: -.01em; }
+.public-card .field input, .public-card .field select { height: 42px; }
+.public-foot { margin: 0; color: var(--muted); font-size: 12px; text-align: center; line-height: 1.5; }
+.public-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.public-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
+.public-ref { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.public-ref b { color: var(--ink); font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+.public-receipt { display: flex; gap: 10px; align-items: flex-start; padding: 13px 15px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); color: var(--blue-text); }
+.public-receipt span { color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
+.public-receipt b { color: var(--ink); }
+@media (max-width: 620px) {
+  .public-page { padding: 24px 16px 40px; }
+  .public-page-column { gap: 18px; }
+  .public-intro h1 { font-size: 22px; }
+  .public-card { padding: 16px; }
+  .public-identity-platform { display: none; }
+}
 @media (max-width: 860px) {
   .contribution-filters-wide { grid-template-columns: 1fr; }
   .contribution-filters { width: 100%; }
@@ -885,6 +918,12 @@ html[data-theme="dark"] .toast svg { color: #0f6b4d; }
 @media (max-width: 860px) {
   .page > * + * { margin-top: var(--gap-block); }
   .action-menu-list { min-width: 160px; }
+}
+
+/* Below the breakpoint the header's actions wrap and stay left-aligned, so a right-anchored panel
+   would extend past the left edge of the screen. Anchor it to the trigger's left instead. */
+@media (max-width: 600px) {
+  .action-menu-list { left: 0; right: auto; }
 }
 
 /* Contributions: plan-level pieces introduced by the declutter pass. */
@@ -969,6 +1008,25 @@ html[data-theme="dark"] .toast svg { color: #0f6b4d; }
 
 .create-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 16px; }
 .create-actions { display: flex; align-items: center; gap: 12px; }
+
+/* The form builder: the steps, the questions in the selected step, and the settings rail. The
+   tracks are `minmax` so they can shrink — fixed tracks let the settings rail ride over the
+   question list when the page is narrow. The rail drops beneath the editor before the columns
+   get too tight. These are container queries, not media queries, because the builder is
+   embedded in pages of different widths (a full-width detail page, a wizard step). */
+.form-canvas { container-type: inline-size; }
+.form-builder-grid { display: grid; grid-template-columns: minmax(150px, 190px) minmax(0, 1fr) minmax(210px, 280px); gap: 16px; align-items: start; }
+.form-builder-grid > * { min-width: 0; }
+.form-builder-settings { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--surface-soft); }
+.form-builder-settings > b { display: block; margin-bottom: 8px; }
+@container (max-width: 880px) {
+  .form-builder-grid { grid-template-columns: minmax(150px, 190px) minmax(0, 1fr); }
+  .form-builder-settings { grid-column: 1 / -1; }
+}
+@container (max-width: 560px) {
+  .form-builder-grid { grid-template-columns: minmax(0, 1fr); }
+  .form-builder-settings { grid-column: auto; }
+}
 
 /* Recording what a member pays: every amount they owe on one row, editable, with the running
    total at the end. Lives inside `.wizard-body`, which already owns the inset. */

@@ -1,4 +1,3 @@
-import type { ReactNode } from "react"
 import { HandCoins } from "@/icons"
 import { recipientHoldsFunds, recipientLabel } from "../domain/contribution.rules"
 import type { ContributionRecipient } from "../types/contribution.types"
@@ -20,15 +19,6 @@ export function RecipientChip({ recipient }: { recipient: ContributionRecipient 
             : "Collected funds are held in the organization account."}
         </small>
       </div>
-    </div>
-  )
-}
-
-/** Plain, centred layout for the public contribution page — no app shell, no sidebar. */
-export function Zone({ children }: { children: ReactNode }) {
-  return (
-    <div className="public-contribution">
-      <div className="public-contribution-card">{children}</div>
     </div>
   )
 }

@@ -104,7 +104,7 @@ setTimeout(() => {
 ### Form pages: a focused column
 
 A form that creates or edits one record is a **focused task**, not a workspace, so it renders in a
-**720px centred column** rather than the full width. Full-bleed was the cause of the worst density
+**880px centred column** rather than the full width. Full-bleed was the cause of the worst density
 bug in the app: with 1137px of panel, a two-option choice row had nothing to stop it stretching, so
 "General"/"Personal" came out **544px wide each** and a text input was 546px.
 
@@ -113,11 +113,15 @@ bug in the app: with 1137px of panel, a two-option choice row had nothing to sto
 <LoanPage width="narrow" … />    {/* features/loans/components/LoanUi.tsx */}
 ```
 
-- **Use `width="narrow"` for a create/edit form page** — `ContributionCreatePage`, the loan-product
-  wizard in `LoanProductsPage`, and the Communications **Compose** tab. Compose derives it from the
-  active tab, because History renders a six-column table and keeps the full width.
-- **Leave it off** for a dashboard, a list, a report or a record workspace. Those *are* full-width.
-- 720px leaves ~680px of content, and the geometry below depends on that.
+- **Use `width="narrow"` for a create/edit form page** — `ContributionCreatePage`, `DuesCreatePage`,
+  `CreateCommunityPage`, and the Communications **Compose** tab. Compose derives it from the active
+  tab, because History renders a six-column table and keeps the full width.
+- **Leave it off** for a dashboard, a list, a report or a record workspace. The loan-product wizard
+  in `LoanProductsPage` is full width on purpose: its *Application form* step is the form builder,
+  which needs three panes.
+- 880px leaves ~830px of content. That is the width the geometry below is tuned for: wide enough
+  that the 13-field *Loan rules* panel sits in four rows of ~265px, narrow enough that a two-field
+  `.form-grid` still reads as a form rather than a stretched table.
 
 | Element | Rule | Why |
 | --- | --- | --- |
@@ -130,11 +134,47 @@ The inverse also holds: things that *are* important stay large on purpose — a 
 balance, the send cost. Spend size on one number per screen rather than shrinking everything into
 uniformity.
 
+### Public links: who is asking
+
+`/apply/:slug` (loan application), `/join/:slug` (membership application) and `/contribute/:slug`
+(a contribution pool) render **outside the app shell** — no sidebar, no session. A stranger opening
+one has no context, so all three render through
+[`PublicFormPage`](../src/components/layout/PublicFormPage.tsx), which supplies the whole page:
+
+```
+[community logo] Community name                  Powered by FinSquare
+LOAN APPLICATION                      ← what this link is for (`purpose`)
+Short Term application form           ← h1: the form or plan
+One line of what happens next         ← description
+┌─────────────────────────────────────┐
+│ the form, in one card at 760px      │
+└─────────────────────────────────────┘
+Community name manages this page …    ← only when the name is known
+```
+
+- **The community is real data or nothing.** The loan link's payload already names the lender
+  (`mfiName`/`mfiLogo`); the contribution link can only name it when the plan's recipient is the
+  organisation account. The membership link's payload names nobody today, so its header shows the
+  product mark and **no community** — never substitute the product mark for a community, and never
+  invent a name.
+- **The card is the only surface.** The renderer inside it is shared with the in-app builder, so its
+  extra room (`.public-card .form-grid`, taller inputs) is scoped under `.public-card` rather than
+  changed in `FormRenderer`.
+- States stay inside the same shell — a dead link, a load failure and a receipt each set their own
+  `title`/`description`, so the page never loses the identity block.
+
 ### Responsive containment
 A grid with a hard minimum (`.appearance-layout`, the `Stats` row, the wide filter grids) must collapse or wrap below `860px`, otherwise it pushes the whole page into horizontal scroll. Two rules to remember:
 
 - Never set `grid-template-columns` **inline** on a responsive grid — an inline style beats the class's media queries. `Stats` passes its column count as `--stat-cols`, and `.stat-grid[data-stats]` switches to `repeat(auto-fit, minmax(150px, 1fr))` below the breakpoint.
 - Add new multi-column layouts to the `@media (max-width: 860px)` block that collapses the existing ones (`dashboard-grid`, `profile-grid`, `structure-grid`, …, `appearance-layout`).
+
+The **form builder** is the exception that proves both rules. It is one component embedded in pages of
+very different widths (a full-width member-form detail page, the loan-product wizard), so it collapses
+on the *canvas* it is given, not on the viewport: `.form-canvas` is a `container-type: inline-size`
+query container and `.form-builder-grid` is a container query — three panes, two below 880px of canvas
+(the settings rail moves under the editor), one below 560px. Its tracks are all `minmax`, so at any
+width they shrink instead of letting the settings rail ride over the question list.
 
 ## Theming
 

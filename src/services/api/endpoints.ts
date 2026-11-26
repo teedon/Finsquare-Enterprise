@@ -135,6 +135,9 @@ export const endpoints = {
     workspace: "/enterprise/wallet",
     setup: "/wallet/setup",
     withdraw: "/wallet/withdraw",
+    cashReceipts: "/enterprise/wallet/cash/receipts",
+    cashDeposits: "/enterprise/wallet/cash/deposits",
+    audit: "/enterprise/wallet/audit",
   },
   /** Customer-wallet settlement policy + manual settlement (Enterprise). */
   walletSettlement: {

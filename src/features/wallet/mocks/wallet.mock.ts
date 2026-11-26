@@ -50,6 +50,9 @@ export const memberWalletsMock: Wallet[] = [
 
 export const walletsMock: Wallet[] = [
   wallet({ id: "w-main", name: "Main Organization Wallet", type: "Main Organization", accountNumber: "9830015501", availableBalance: 48_620_000, pendingBalance: 1_250_000, description: "Primary treasury wallet for the organization.", limits: limits(10_000_000, 20_000_000, 20_000_000, 100_000_000, 5_000_000) }),
+  // Cash taken at the counter. It is a real account with its own ledger, but it is not bank money:
+  // it moves to the main wallet only when it is deposited.
+  wallet({ id: "w-cash", name: "Cash on hand", type: "Cash", accountNumber: "—", bankName: "Cash", availableBalance: 0, description: "Money received in cash at the counter, before it is banked.", limits: limits(5_000_000, 10_000_000, 0, 10_000_000, 5_000_000) }),
   wallet({ id: "w-lagos", name: "Lagos Branch Wallet", type: "Branch", scope: "branch", branchId: "branch-lagos", branchName: "Lagos Branch", accountNumber: "9830015503", availableBalance: 6_840_000, description: "Operating wallet for the Lagos Branch.", limits: limits(1_500_000, 3_000_000, 3_000_000, 10_000_000, 500_000) }),
   wallet({ id: "w-ikeja", name: "Ikeja Unit Wallet", type: "Branch", scope: "branch", branchId: "branch-ikeja", branchName: "Ikeja Unit", accountNumber: "9830015504", availableBalance: 3_215_000, description: "Operating wallet for the Ikeja Unit.", limits: limits(1_000_000, 2_000_000, 2_000_000, 8_000_000, 300_000) }),
   wallet({ id: "w-epe", name: "Epe Branch Wallet", type: "Branch", scope: "branch", branchId: "branch-epe", branchName: "Epe Branch", accountNumber: "9830015505", availableBalance: 1_790_000, status: "restricted", description: "Operating wallet for the Epe Branch.", limits: limits(750_000, 1_500_000, 1_500_000, 5_000_000, 250_000) }),
@@ -63,7 +66,7 @@ export const accountMock: OrganizationAccount = {
   provider: { id: "provider-9psb", name: "9PSB (via banking partner)" }, bankName: "9PSB", createdAt: daysAgo(400), walletIds: walletsMock.map((w) => w.id),
 }
 
-const all: WalletPermission[] = ["wallet.view", "wallet.view_balance", "wallet.view_transactions", "wallet.fund", "wallet.transfer", "wallet.withdraw", "wallet.disburse", "wallet.approve_disbursement", "wallet.approve_transfer", "wallet.reverse", "wallet.export"]
+const all: WalletPermission[] = ["wallet.view", "wallet.view_balance", "wallet.view_transactions", "wallet.fund", "wallet.transfer", "wallet.withdraw", "wallet.disburse", "wallet.approve_disbursement", "wallet.approve_transfer", "wallet.reverse", "wallet.export", "wallet.cash"]
 const read: WalletPermission[] = ["wallet.view", "wallet.view_balance", "wallet.view_transactions"]
 export const accessMock: WalletAccess[] = [
   { id: "acc-1", walletId: "*", subjectType: "role", subjectId: "role-super-admin", subjectName: "Super Admin", permissions: all },
@@ -136,7 +139,7 @@ export const auditMock: WalletAuditLog[] = [
 export function createWalletDataset(): WalletDataset {
   return {
     account: { ...accountMock }, wallets: walletsMock.map((w) => ({ ...w })), access: [...accessMock], transactions: [...transactionsMock], transfers: [],
-    approvals: approvalsMock.map((a) => ({ ...a })), rules: [...rulesMock], audit: [...auditMock], fundingMethods: [...fundingMethodsMock],
+    approvals: approvalsMock.map((a) => ({ ...a })), rules: [...rulesMock], audit: [...auditMock], fundingMethods: [...fundingMethodsMock], receipts: [],
   }
 }
 

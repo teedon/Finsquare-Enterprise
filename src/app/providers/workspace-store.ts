@@ -227,7 +227,9 @@ export function sliceFromMembership(membership: CommunityMembership): WorkspaceC
 function withDefaults(community: WorkspaceCommunity): WorkspaceCommunity {
   return {
     ...community,
-    organization: { ...emptyOrganization, ...community.organization },
+    // A stored name can still carry the whitespace the backend used to return, and every sentence
+    // the app builds around it would render "… with Kogi Boys ." Normalise once on load.
+    organization: { ...emptyOrganization, ...community.organization, name: (community.organization?.name ?? "").trim() },
     enabledModules: community.enabledModules ?? DEFAULT_ENABLED_MODULES,
     corporateDetails: { ...emptyCorporateDetails, ...community.corporateDetails },
     complianceDocuments: community.complianceDocuments ?? seededCompliance(),

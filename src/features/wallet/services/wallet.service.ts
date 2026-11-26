@@ -5,7 +5,9 @@ import type { WalletRepository } from "../repositories/wallet.repository"
 import { env } from "@/app/config/env"
 import { BANK_CODES } from "../constants/banks"
 import { SEED_ORGANIZATION_ID } from "@/lib/tenancy/seed-tenant"
-import { checkOutflow, requiredApprovals } from "../domain/wallet.rules"
+import { checkOutflow, money, requiredApprovals } from "../domain/wallet.rules"
+import { CASH_WALLET_NAME, cashReference, cashWalletOf, round2, settledOf } from "../domain/cash.rules"
+import type { CashDepositInput, CashReceipt, CashReceiptInput, CashReceiptItem } from "../types/cash.types"
 import type {
   Actor, ApprovalRule, DisbursementItem, RelatedRecords, Wallet, WalletAccess, WalletApproval, WalletAuditLog, WalletDataset,
   WalletLimits, WalletStatus, WalletTransaction, WalletType,
@@ -15,7 +17,22 @@ export type Mode = "live" | "simulated" | "blocked"
 const now = () => new Date().toISOString()
 const num = (prefix: string) => `${prefix}-${Math.floor(10000 + Math.random() * 89999)}`
 const acctNo = () => `98${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}`
-const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100
+
+/** The ledger entry a settled cash receipt writes, taken from what it paid. */
+const settlementType = (items: CashReceiptItem[]): WalletTransaction["type"] => {
+  const kinds = new Set(items.map((item) => item.kind))
+  if (kinds.size !== 1) return "Payment"
+  return kinds.has("Dues") ? "Dues" : kinds.has("Contribution") ? "Contribution" : "Loan Repayment"
+}
+
+/** The module record the settlement points back at, so the statement can open what was paid. */
+const settlementRelated = (items: CashReceiptItem[], memberName: string): RelatedRecords => {
+  const only = items.length === 1 ? items[0] : undefined
+  if (!only) return { memberName }
+  if (only.kind === "Contribution") return { memberName, contributionId: only.id, contributionName: only.label }
+  if (only.kind === "Dues") return { memberName, duesId: only.id, duesName: only.label }
+  return { memberName, loanReference: only.label }
+}
 
 /**
  * Mock-backed service. Every method documents what the real backend must enforce:
@@ -66,8 +83,10 @@ export class WalletService {
     return d.wallets.map((w) => (w.id === id ? fn(w) : w))
   }
   private syncAccount(d: WalletDataset, wallets: Wallet[]) {
-    const available = wallets.reduce((t, w) => t + w.availableBalance, 0)
-    return { ...d.account, availableBalance: available, ledgerBalance: available + wallets.reduce((t, w) => t + w.pendingBalance, 0), walletIds: wallets.map((w) => w.id) }
+    // Cash in the drawer is not bank money: it raises the bank balance only when it is deposited.
+    const banked = wallets.filter((w) => w.type !== "Cash")
+    const available = banked.reduce((t, w) => t + w.availableBalance, 0)
+    return { ...d.account, availableBalance: available, ledgerBalance: available + banked.reduce((t, w) => t + w.pendingBalance, 0), walletIds: wallets.map((w) => w.id) }
   }
 
   async createWallet(input: { name: string; type: WalletType; branchId?: string; branchName?: string; description: string; openingBalance: number }, actor: Actor) {
@@ -105,6 +124,158 @@ export class WalletService {
     const wallets = [...d.wallets, wallet]
     await this.repo.commit({ wallets, account: this.syncAccount(d, wallets), audit: this.audit(d, { actor: actor.name, action: "Member wallet opened", walletId: wallet.id, walletName: wallet.name, newState: wallet.status }) })
     return wallet
+  }
+
+  /**
+   * The organization's cash drawer, or the one it already has. Idempotent, for the same reason as a
+   * member wallet: whoever takes cash first also opens the drawer. The backend creates it with the
+   * community instead, so this never runs there.
+   */
+  async ensureCashWallet(actor: Actor) {
+    const d = await this.repo.load()
+    const existing = cashWalletOf(d.wallets)
+    if (existing) return existing
+    const wallet: Wallet = {
+      id: walletId("w"), organizationId: d.account.organizationId, accountId: d.account.id,
+      name: CASH_WALLET_NAME, description: "Money received in cash at the counter, before it is banked.",
+      type: "Cash", scope: "organization", accountNumber: "—", bankName: "Cash",
+      currency: d.account.currency, status: "active", availableBalance: 0, pendingBalance: 0, createdAt: now(),
+      // Cash leaves the drawer as a bank deposit, so a transfer limit applies; it never disburses.
+      limits: { singleTransaction: 5_000_000, dailyTransfer: 10_000_000, dailyDisbursement: 0, dailyFunding: 10_000_000, dailyWithdrawal: 5_000_000 },
+    }
+    const wallets = [...d.wallets, wallet]
+    await this.repo.commit({ wallets, account: this.syncAccount(d, wallets), audit: this.audit(d, { actor: actor.name, action: "Cash wallet opened", walletId: wallet.id, walletName: wallet.name, newState: wallet.status }) })
+    return wallet
+  }
+
+  /**
+   * Cash taken at the counter for money a member owes.
+   *
+   * What the member handed over is **credited** to their wallet and what the receipt settled is
+   * **debited** from it, so their statement shows both halves and the change stays as their balance.
+   * The cash wallet — never the bank balance — is credited with the full amount. Every entry carries
+   * the same reference and names the administrator who took the money, which is what the audit trail
+   * reads. One commit, so the two wallets and the receipt can never disagree.
+   *
+   * The backend performs this as a single transaction; `repo.receiveCash` is that call.
+   */
+  async receiveCash(input: CashReceiptInput, actor: Actor, mode: Mode): Promise<CashReceipt> {
+    this.guard(mode)
+    if (!(input.amount > 0)) throw new Error("Enter the amount of cash received.")
+    const settled = settledOf(input.items)
+    if (settled > input.amount) throw new Error("The receipt cannot settle more than the cash received.")
+    if (this.repo.receiveCash) return this.repo.receiveCash(input, actor, mode)
+
+    let d = await this.repo.load()
+    let cash = cashWalletOf(d.wallets)
+    if (!cash) {
+      await this.ensureCashWallet(actor)
+      d = await this.repo.load()
+      cash = cashWalletOf(d.wallets)
+    }
+    if (!cash) throw new Error("This organization has no cash wallet yet.")
+    if (cash.status !== "active") throw new Error(`The cash wallet is ${cash.status}.`)
+    let memberWallet = d.wallets.find((w) => w.scope === "member" && w.memberId === input.memberId)
+    if (!memberWallet) {
+      await this.ensureMemberWallet({ memberId: input.memberId, memberName: input.memberName }, actor)
+      d = await this.repo.load()
+      cash = cashWalletOf(d.wallets) ?? cash
+      memberWallet = d.wallets.find((w) => w.scope === "member" && w.memberId === input.memberId)
+    }
+    if (!memberWallet) throw new Error("This member has no wallet to receive the cash.")
+
+    const simulated = mode === "simulated"
+    const reference = cashReference()
+    const receiptId = walletId("csh")
+    const labels = input.items.map((item) => item.label).join(" · ")
+    const meta = { reference, receiptId, channel: "cash", ...(simulated ? { simulated: "true" } : {}) }
+
+    const received = this.baseTx(memberWallet, {
+      type: "Cash Receipt", amount: input.amount, direction: "credit", description: `Cash received from ${input.memberName}`,
+      status: "Completed", initiatedBy: actor.name, sender: actor.name, related: { memberName: input.memberName }, metadata: meta, simulated,
+    })
+    const payment = settled > 0
+      ? this.baseTx(memberWallet, {
+          type: settlementType(input.items), amount: settled, direction: "debit", description: labels || "Payment from cash received",
+          status: "Completed", initiatedBy: actor.name, recipient: input.memberName, related: settlementRelated(input.items, input.memberName), metadata: meta, simulated,
+        })
+      : null
+    const cashTx = this.baseTx(cash, {
+      type: "Cash Receipt", amount: input.amount, direction: "credit", description: `Cash received from ${input.memberName}`,
+      status: "Completed", initiatedBy: actor.name, sender: input.memberName, related: { memberName: input.memberName }, metadata: meta, simulated,
+    })
+
+    const wallets = d.wallets.map((w) =>
+      w.id === cash.id
+        ? { ...w, availableBalance: round2(w.availableBalance + input.amount) }
+        : w.id === memberWallet.id
+          ? { ...w, availableBalance: round2(w.availableBalance + input.amount - settled) }
+          : w,
+    )
+    const receipt: CashReceipt = {
+      id: receiptId, organizationId: d.account.organizationId, reference, at: now(),
+      memberId: input.memberId, memberName: input.memberName, amount: input.amount, settled, items: input.items,
+      receivedById: actor.id, receivedBy: actor.name, note: input.note,
+      cashWalletId: cash.id, cashTransactionId: cashTx.id, memberTransactionIds: payment ? [received.id, payment.id] : [received.id], simulated,
+    }
+    const at = now()
+    const entries: WalletAuditLog[] = [
+      { id: walletId("aud"), at, actor: actor.name, action: "Cash received", walletId: cash.id, walletName: cash.name, amount: input.amount, reference, transactionId: cashTx.id, previousState: cash.availableBalance.toString(), newState: round2(cash.availableBalance + input.amount).toString() },
+      { id: walletId("aud"), at, actor: actor.name, action: `Cash credited to member wallet`, walletId: memberWallet.id, walletName: memberWallet.name, amount: input.amount, reference, transactionId: received.id, previousState: memberWallet.availableBalance.toString(), newState: round2(memberWallet.availableBalance + input.amount).toString() },
+      ...(payment
+        ? [{ id: walletId("aud"), at, actor: actor.name, action: `Payment settled from member wallet`, walletId: memberWallet.id, walletName: memberWallet.name, amount: settled, reference, transactionId: payment.id, previousState: round2(memberWallet.availableBalance + input.amount).toString(), newState: round2(memberWallet.availableBalance + input.amount - settled).toString() } as WalletAuditLog]
+        : []),
+    ]
+
+    await this.repo.commit({
+      wallets,
+      account: this.syncAccount(d, wallets),
+      transactions: [cashTx, ...(payment ? [payment] : []), received, ...d.transactions],
+      audit: [...entries, ...d.audit],
+      receipts: [receipt, ...d.receipts],
+    })
+    return receipt
+  }
+
+  /**
+   * Banks cash that was taken at the counter: the drawer falls, the bank rises. A deposit records
+   * something that already happened, so it does not wait for approval — the bank reference is what
+   * ties it to the deposit slip.
+   */
+  async depositCash(input: CashDepositInput, actor: Actor, mode: Mode): Promise<{ reference: string }> {
+    this.guard(mode)
+    if (!(input.amount > 0)) throw new Error("Enter the amount deposited.")
+    if (!input.bankReference.trim()) throw new Error("Enter the bank's reference for the deposit.")
+    if (this.repo.depositCash) return this.repo.depositCash(input, actor, mode)
+
+    const d = await this.repo.load()
+    const cash = cashWalletOf(d.wallets)
+    if (!cash) throw new Error("This organization has no cash wallet yet.")
+    const bank = d.wallets.find((w) => w.type === "Main Organization")
+    if (!bank) throw new Error("The organization has no main wallet to deposit into.")
+    if (input.amount > cash.availableBalance) throw new Error(`Only ${money(cash.availableBalance)} is held as cash.`)
+
+    const simulated = mode === "simulated"
+    const reference = num("DEP")
+    const moved = this.move(d, cash, bank, input.amount, actor.name, undefined, reference, input.note || "Cash deposit", simulated)
+    const txs = moved.txs.map((t) => ({
+      ...t,
+      type: "Cash Deposit" as const,
+      description: t.direction === "debit" ? `Cash deposited to ${bank.name} · ${input.bankReference}` : `Cash deposited from the counter · ${input.bankReference}`,
+      metadata: { ...t.metadata, bankReference: input.bankReference, ...(input.note ? { note: input.note } : {}) },
+    }))
+    const at = now()
+    const entries: WalletAuditLog[] = [
+      { id: walletId("aud"), at, actor: actor.name, action: "Cash deposited to bank", walletId: cash.id, walletName: cash.name, amount: input.amount, reference, transactionId: txs[0].id, previousState: cash.availableBalance.toString(), newState: round2(cash.availableBalance - input.amount).toString() },
+      { id: walletId("aud"), at, actor: actor.name, action: "Bank credited from cash deposit", walletId: bank.id, walletName: bank.name, amount: input.amount, reference, transactionId: txs[1].id, previousState: bank.availableBalance.toString(), newState: round2(bank.availableBalance + input.amount).toString() },
+    ]
+    await this.repo.commit({
+      wallets: moved.wallets,
+      account: this.syncAccount(d, moved.wallets),
+      transactions: [...txs, ...d.transactions],
+      audit: [...entries, ...d.audit],
+    })
+    return { reference }
   }
 
   async setStatus(id: string, status: WalletStatus, actor: Actor) {
@@ -288,7 +459,7 @@ export class WalletService {
     input: {
       walletId: string
       amount: number
-      type: Extract<WalletTransaction["type"], "Contribution" | "Payment" | "Refund">
+      type: Extract<WalletTransaction["type"], "Contribution" | "Payment" | "Refund" | "Cash Receipt">
       description: string
       reference: string
       sender: string

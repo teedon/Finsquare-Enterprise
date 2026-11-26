@@ -1,7 +1,8 @@
 import { useState } from "react"
-import { Badge, Button, Field, SectionHeader } from "@/components/ui"
+import { Badge, Button, Field } from "@/components/ui"
 import { HandCoins, Landmark } from "@/icons"
-import { RecipientChip, Zone } from "./PublicContributionParts"
+import { PublicFormPage } from "@/components/layout/PublicFormPage"
+import { RecipientChip } from "./PublicContributionParts"
 import { publicContributionSchema } from "../schemas/contribution.schema"
 import { usePublicContribution } from "../hooks/useContributions"
 import { publicLinkAvailable, frequencyLabel } from "../domain/contribution.rules"
@@ -20,33 +21,45 @@ export default function PublicContributionPage({ slug, memberId }: { slug: strin
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  if (status === "loading") return <Zone><p>Loading…</p></Zone>
+  // An organisation-held pool is published by that organisation, so its account name is the only
+  // identity the public payload carries. Anything else (a member or contributor recipient) names a
+  // person, not the community, so it is left out rather than shown as the wrong thing.
+  const community =
+    contribution?.recipient.kind === "organization" && contribution.recipient.accountName
+      ? { name: contribution.recipient.accountName }
+      : undefined
+  const page = (title: string, description?: string, body?: React.ReactNode) => (
+    <PublicFormPage community={community} purpose="Contribution" title={title} description={description}>
+      {body}
+    </PublicFormPage>
+  )
+
+  if (status === "loading") return page("Loading…", "Fetching the contribution details.")
 
   // A member link works while the member is on the plan; the pool link needs the plan to be open.
   const memberLink = Boolean(participant)
   const openLink = contribution ? publicLinkAvailable(contribution) : false
 
   if (status === "error" || !contribution || (!memberLink && !openLink)) {
-    return (
-      <Zone>
-        <SectionHeader eyebrow="CONTRIBUTION" title="Link unavailable" />
-        <p className="contribution-hint">This contribution link is inactive or does not exist. Ask the organization for a current link.</p>
-      </Zone>
+    return page(
+      "This link is not active",
+      "The contribution is closed or the link is incomplete. Ask the organization for a current one.",
     )
   }
 
   if (receipt) {
-    return (
-      <Zone>
-        <div className="onb-done"><HandCoins size={26} /></div>
-        <SectionHeader eyebrow="THANK YOU" title={`Contribution recorded`} />
-        <p className="contribution-hint">
-          Your reference is <b>{receipt.reference}</b>. {money(receipt.amount)} towards {receipt.contributionName}.
-        </p>
-        <p className="contribution-hint">
-          Funds are held in <b>{receipt.recipientLabel}</b>. The organization confirms the payment once it settles.
-        </p>
-      </Zone>
+    return page(
+      "Contribution recorded",
+      `Your reference is ${receipt.reference} — ${money(receipt.amount)} towards ${receipt.contributionName}.`,
+      <>
+        <div className="public-receipt">
+          <HandCoins size={22} />
+          <span>
+            Funds are held in <b>{receipt.recipientLabel}</b>. The organization confirms the payment once it settles.
+          </span>
+        </div>
+        <p className="contribution-hint">Keep the reference above for your records.</p>
+      </>,
     )
   }
 
@@ -79,22 +92,18 @@ export default function PublicContributionPage({ slug, memberId }: { slug: strin
     method.id === "wallet" ? memberLink && Boolean(memberWallet) : true,
   )
 
-  return (
-    <Zone>
-      <SectionHeader
-        eyebrow="CONTRIBUTION"
-        title={contribution.name}
-        description={contribution.description}
-      />
-
-      <div className="public-contribution-head">
+  return page(
+    contribution.name,
+    contribution.description,
+    <>
+      <div className="public-badges">
         <Badge tone="blue">{contribution.type}</Badge>
         <Badge tone="neutral">{frequencyLabel(contribution)}</Badge>
         {contribution.targetAmount && <Badge tone="amber">Target {money(contribution.targetAmount)}</Badge>}
       </div>
 
       {participant && (
-        <p className="contribution-hint">
+        <p className="contribution-hint" style={{ marginTop: 0 }}>
           Contributing as <b>{participant.memberName}</b>
           {participant.availableBalance > 0 ? ` · ${money(participant.availableBalance)} already saved` : ""}.
         </p>
@@ -102,43 +111,41 @@ export default function PublicContributionPage({ slug, memberId }: { slug: strin
 
       <RecipientChip recipient={contribution.recipient} />
 
-      <section className="panel" style={{ padding: 16, marginTop: 12 }}>
-        <div className="form-grid">
-          {participant ? (
-            <Field label="Your name" value={participant.memberName} onChange={() => undefined} />
-          ) : (
-            <Field label="Your name" value={form.contributorName} onChange={(value) => setForm({ ...form, contributorName: value })} />
-          )}
-          <Field label="Phone (optional)" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />
-          <Field label="Email (optional)" value={form.email} onChange={(value) => setForm({ ...form, email: value })} />
-          <label className="field">
-            <span>Amount</span>
-            <input type="number" min={0} value={form.amount || ""} onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })} />
-          </label>
-          <label className="field span-2">
-            <span>Payment method</span>
-            <select value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value as ContributionPaymentMethodId })}>
-              {methods.map((method) => (
-                <option key={method.id} value={method.id}>
-                  {method.label}
-                  {method.id === "wallet" && memberWallet ? ` — ${money(memberWallet.availableBalance)} available` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {contribution.minimumAmount ? <p className="contribution-hint">Minimum contribution {money(contribution.minimumAmount)}.</p> : null}
-        {error && <p className="field-error">{error}</p>}
-        <div className="contribution-public-actions">
-          <Button onClick={submit} disabled={busy}>{busy ? "Submitting…" : "Contribute"}</Button>
-        </div>
-        <p className="contribution-hint">
-          <Landmark size={13} />{" "}
-          {form.method === "wallet"
-            ? "Paid from your wallet balance, so it is recorded immediately."
-            : "No FinSquare account is needed. The organization verifies the payment before it is credited."}
-        </p>
-      </section>
-    </Zone>
+      <div className="form-grid">
+        {participant ? (
+          <Field label="Your name" value={participant.memberName} onChange={() => undefined} />
+        ) : (
+          <Field label="Your name" value={form.contributorName} onChange={(value) => setForm({ ...form, contributorName: value })} />
+        )}
+        <Field label="Phone (optional)" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />
+        <Field label="Email (optional)" value={form.email} onChange={(value) => setForm({ ...form, email: value })} />
+        <label className="field">
+          <span>Amount</span>
+          <input type="number" min={0} value={form.amount || ""} onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })} />
+        </label>
+        <label className="field span-2">
+          <span>Payment method</span>
+          <select value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value as ContributionPaymentMethodId })}>
+            {methods.map((method) => (
+              <option key={method.id} value={method.id}>
+                {method.label}
+                {method.id === "wallet" && memberWallet ? ` — ${money(memberWallet.availableBalance)} available` : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {contribution.minimumAmount ? <p className="contribution-hint">Minimum contribution {money(contribution.minimumAmount)}.</p> : null}
+      {error && <p className="field-error">{error}</p>}
+      <p className="contribution-hint">
+        <Landmark size={13} />{" "}
+        {form.method === "wallet"
+          ? "Paid from your wallet balance, so it is recorded immediately."
+          : "No FinSquare account is needed. The organization verifies the payment before it is credited."}
+      </p>
+      <div className="public-actions">
+        <Button onClick={submit} disabled={busy}>{busy ? "Submitting…" : "Contribute"}</Button>
+      </div>
+    </>,
   )
 }

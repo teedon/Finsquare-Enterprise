@@ -6,7 +6,7 @@ import type { MemberPaymentMethod, MemberPaymentResult } from "../services/membe
 
 const METHODS: { id: MemberPaymentMethod; label: string; hint: string }[] = [
   { id: "wallet", label: "Member wallet", hint: "Debits the member's own balance" },
-  { id: "cash", label: "Cash", hint: "Received at the branch" },
+  { id: "cash", label: "Cash", hint: "Received at the counter — kept as cash on hand" },
   { id: "bank_transfer", label: "Bank transfer", hint: "Confirmed in the bank account" },
 ]
 
@@ -29,6 +29,7 @@ export function RecordMemberPayment({
   walletBalance,
   hasWallet,
   mode,
+  canTakeCash,
   pay,
   onClose,
   notify,
@@ -38,10 +39,13 @@ export function RecordMemberPayment({
   walletBalance: number
   hasWallet: boolean
   mode: "live" | "simulated" | "blocked"
+  /** Cash is money the administrator keeps, so it needs `wallet.cash` on top of the payment permission. */
+  canTakeCash: boolean
   pay: (payment: {
     memberName: string
     items: { obligation: MemberObligation; amount: number }[]
     method: MemberPaymentMethod
+    cashReceived?: number
     note?: string
   }) => Promise<MemberPaymentResult>
   onClose: () => void
@@ -51,21 +55,27 @@ export function RecordMemberPayment({
   const [targetId, setTargetId] = useState(() => obligations[0]?.id ?? SETTLE_ALL)
   const [amount, setAmount] = useState(() => round2(obligations[0]?.outstanding ?? 0))
   const [method, setMethod] = useState<MemberPaymentMethod>(
-    hasWallet && walletBalance > 0 ? "wallet" : "cash",
+    hasWallet && walletBalance > 0 ? "wallet" : canTakeCash ? "cash" : "bank_transfer",
   )
   const [note, setNote] = useState("")
+  const [cashInput, setCashInput] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   const settlingAll = targetId === SETTLE_ALL
   const selected = obligations.find((item) => item.id === targetId)
   const unsettled = obligations.filter((item) => item.outstanding > 0)
   const total = settlingAll ? totalDue : round2(amount)
+  // Cash is counted, not typed to match: the member may hand over more than the amount being applied,
+  // and the difference becomes their balance rather than an adjustment to the obligation.
+  const cashHanded = cashInput.trim() === "" ? total : round2(Number(cashInput) || 0)
+  const change = method === "cash" ? round2(cashHanded - total) : 0
   const overWallet = method === "wallet" && total > walletBalance
   const blocked = mode === "blocked"
 
   const choose = (id: string) => {
     setTargetId(id)
     setAmount(id === SETTLE_ALL ? totalDue : round2(obligations.find((item) => item.id === id)?.outstanding ?? 0))
+    setCashInput("")
     setError(null)
   }
 
@@ -79,18 +89,39 @@ export function RecordMemberPayment({
   const submit = async () => {
     if (total <= 0) fail("Enter an amount greater than zero.")
     if (overWallet) fail(`That is more than the ${money(walletBalance)} in the member's wallet.`)
+    if (method === "cash" && cashHanded < total) {
+      fail(`The member handed over ${money(cashHanded)} but ${money(total)} is being applied.`)
+    }
     const items = settlingAll
       ? unsettled.map((item) => ({ obligation: item, amount: item.outstanding }))
       : selected
         ? [{ obligation: selected, amount: round2(amount) }]
         : []
     try {
-      const result = await pay({ memberName, items, method, note: note || undefined })
-      notify(
-        `${money(result.total)} recorded for ${memberName} across ${result.recorded} ${
-          result.recorded === 1 ? "item" : "items"
-        }`,
-      )
+      const result = await pay({
+        memberName,
+        items,
+        method,
+        cashReceived: method === "cash" ? cashHanded : undefined,
+        note: note || undefined,
+      })
+      if (result.cashReceipt) {
+        const kept = round2(result.cashReceipt.amount - result.cashReceipt.settled)
+        notify(
+          `${money(result.cashReceipt.amount)} cash received by ${result.cashReceipt.receivedBy} — receipt ${result.cashReceipt.reference}` +
+            (kept > 0 ? `. ${money(kept)} kept as the member's balance.` : ""),
+        )
+      } else if (method === "cash" && !result.cashTracked) {
+        // The payment is recorded; the cash ledger is not connected. Say which half is missing
+        // rather than implying the drawer and the books agree.
+        notify(`${money(result.total)} recorded. Cash tracking is not connected to the backend yet.`)
+      } else {
+        notify(
+          `${money(result.total)} recorded for ${memberName} across ${result.recorded} ${
+            result.recorded === 1 ? "item" : "items"
+          }`,
+        )
+      }
     } catch (reason) {
       fail(reason instanceof Error ? reason.message : "The payment could not be recorded.")
     }
@@ -166,15 +197,41 @@ export function RecordMemberPayment({
                     type="radio"
                     name="member-payment-method"
                     checked={method === option.id}
-                    disabled={option.id === "wallet" && (!hasWallet || walletBalance <= 0)}
+                    disabled={
+                      (option.id === "wallet" && (!hasWallet || walletBalance <= 0)) ||
+                      (option.id === "cash" && !canTakeCash)
+                    }
                     onChange={() => setMethod(option.id)}
                   />
                   {option.label}
-                  <small>{option.hint}</small>
+                  <small>{option.id === "cash" && !canTakeCash ? "Your role cannot receive cash" : option.hint}</small>
                 </label>
               ))}
             </div>
           </div>
+
+          {method === "cash" && (
+            <>
+              <label className="field field-lead">
+                <span>Cash received</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={cashInput}
+                  placeholder={String(total)}
+                  onChange={(event) => setCashInput(event.target.value)}
+                />
+              </label>
+              <p className="contribution-hint">
+                {change > 0
+                  ? `${money(total)} settles this payment. ${money(change)} stays as the member's wallet balance.`
+                  : change < 0
+                    ? `That is ${money(Math.abs(change))} less than the amount being applied.`
+                    : "Counted at the counter and held as cash on hand."}
+              </p>
+            </>
+          )}
 
           <TextArea
             label="Note (optional)"

@@ -26,7 +26,7 @@ const TYPES: [ApplicationType, string][] = [
   ["Both", "Existing members and external applicants can apply."],
 ]
 
-export function ProductWizard({ ctx, initial, startStep = 0, onClose }: { ctx: LoanCtx; initial: LoanProduct | null; startStep?: number; onClose: () => void }) {
+export function ProductWizard({ ctx, initial, startStep = 0, onClose, onCancel }: { ctx: LoanCtx; initial: LoanProduct | null; startStep?: number; onClose: () => void; onCancel?: () => void }) {
   const { data, service, notify, can } = ctx
   const organizationId = useOrganizationId()
   const questionLibrary = useQuestionLibrary(organizationId)
@@ -79,7 +79,8 @@ export function ProductWizard({ ctx, initial, startStep = 0, onClose }: { ctx: L
 
   return (
     <>
-      <SectionHeader eyebrow="LOANS" title={initial ? `Edit ${initial.name}` : "Create loan product"} description="Changes apply to new applications only. Existing applications keep the form version they were submitted with." />
+      <SectionHeader eyebrow="LOANS" title={initial ? `Edit ${initial.name}` : "Create loan product"} description="Changes apply to new applications only. Existing applications keep the form version they were submitted with."
+        actions={onCancel && <Button variant="secondary" onClick={onCancel}>Close</Button>} />
       <ol style={{ display: "flex", flexWrap: "wrap", gap: 6, listStyle: "none", padding: 0, margin: "0 0 14px" }}>
         {STEPS.map((s, i) => (
           <li key={s}><button type="button" onClick={() => go(i)} style={{ fontSize: 13, padding: "6px 12px", borderRadius: 99, border: "1px solid var(--line)", background: i === step ? "var(--blue)" : "var(--surface)", color: i === step ? "var(--on-accent)" : "var(--ink)", cursor: "pointer" }}>{i + 1}. {s}</button></li>

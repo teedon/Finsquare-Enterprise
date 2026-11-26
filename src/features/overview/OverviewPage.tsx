@@ -74,7 +74,7 @@ function DashboardView({
         actions={
           can("members.create") ? (
             <Button icon={Plus} onClick={() => setView("members")}>
-              Enrol customer
+              Add member
             </Button>
           ) : undefined
         }
@@ -87,13 +87,13 @@ function DashboardView({
         <section className="panel" style={{ padding: 20 }}>
           <EmptyState
             title="Nothing here yet"
-            description={`${organizationName} has no customers, loans or savings groups yet. Start by enrolling a customer.`}
+            description={`${organizationName} has no members, loans or savings groups yet. Start by adding a member.`}
           />
           <div className="quick-grid" style={{ marginTop: 14 }}>
             {can("members.create") && (
               <button type="button" onClick={() => setView("members")}>
                 <UserPlus size={17} />
-                Enrol customer
+                Add member
               </button>
             )}
             {can("loan_products.create") && (
@@ -140,7 +140,7 @@ function DashboardView({
               <div className="panel-head">
                 <div>
                   <b>Needs attention</b>
-                  <span>Items that may block {organizationName}’s progress</span>
+                  <span>Items that may block progress at {organizationName}</span>
                 </div>
                 {attention.length > 0 && <Badge tone="amber">{attention.length} open</Badge>}
               </div>
@@ -179,7 +179,7 @@ function DashboardView({
               <div className="quick-grid">
                 <button type="button" onClick={() => setView("members")}>
                   <UserPlus size={17} />
-                  Enrol customer
+                  Add member
                 </button>
                 <button type="button" onClick={() => setView("loan-applications")}>
                   <ClipboardCheck size={17} />
@@ -219,8 +219,8 @@ function DashboardView({
           <section className="panel recent-panel">
             <div className="panel-head">
               <div>
-                <b>Latest customers</b>
-                <span>The most recent customers enrolled at {organizationName}</span>
+                <b>Latest members</b>
+                <span>The most recently added members at {organizationName}</span>
               </div>
               {latestCustomers.length > 0 && (
                 <Button variant="ghost" onClick={() => setView("members")}>
@@ -229,7 +229,7 @@ function DashboardView({
               )}
             </div>
             {latestCustomers.length === 0 ? (
-              <EmptyState title="No customers yet" description="Customers you enrol will appear here." />
+              <EmptyState title="No members yet" description="Members you add will appear here." />
             ) : (
               latestCustomers.map((customer) => (
                 <div className="activity-row" key={customer.id}>

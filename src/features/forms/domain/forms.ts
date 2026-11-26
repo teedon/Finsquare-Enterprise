@@ -52,6 +52,13 @@ export function moveItem<T>(list: T[], from: number, to: number): T[] {
   return next
 }
 
+/**
+ * The whole numbers from `min` to `max`, as strings, for a generated dropdown. A loan type stores
+ * its duration as a range, so the application form offers exactly the values it permits.
+ */
+export const rangeStrings = (min: number, max: number): string[] =>
+  max < min ? [] : Array.from({ length: Math.floor(max) - Math.ceil(min) + 1 }, (_, i) => String(Math.ceil(min) + i))
+
 export const fieldFromLibrary = (q: QuestionLibraryItem): FormField => ({
   id: mockId("q"), type: q.type, label: q.label, description: q.description, required: q.required, questionLibraryId: q.id, order: 0,
   options: q.options?.map((o) => ({ ...o, id: mockId("o") })),

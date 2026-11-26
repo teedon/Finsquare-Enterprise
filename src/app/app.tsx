@@ -24,13 +24,14 @@ import {
   LoanApplicationsPage,
   LoanDetailPage,
   LoanProductsPage,
+  LoanProductDetailPage,
   DisbursementsPage,
   LoansOverviewPage,
   PublicApplicationPage,
   RecoveryPage,
   RepaymentsPage,
 } from "@/features/loans"
-import { AccessControls, TransactionTable, WalletList, WalletOverview, WalletPage } from "@/features/wallet"
+import { AccessControls, TransactionTable, WalletActivity, WalletList, WalletOverview, WalletPage } from "@/features/wallet"
 import ReportsPage from "@/features/reports/pages/ReportsPage"
 import OrganizationProfilePage from "@/features/organization/components/OrganizationProfile"
 import OnboardingFlow from "@/features/onboarding/components/OnboardingFlow"
@@ -257,6 +258,8 @@ export default function FinSquareApp() {
             <WalletList ctx={ctx} />
           ) : view === "wallet-transactions" ? (
             <TransactionTable ctx={ctx} />
+          ) : view === "wallet-activity" ? (
+            <WalletActivity ctx={ctx} />
           ) : (
             <AccessControls ctx={ctx} />
           )
@@ -281,6 +284,8 @@ export default function FinSquareApp() {
     content = <RecoveryPage navigate={navigate} notify={notify} id={entityId} />
   } else if (view === "loan-products" || view === "loan-type-create") {
     content = <LoanProductsPage key={view} navigate={navigate} notify={notify} id={entityId} />
+  } else if (view === "loan-product-detail") {
+    content = <LoanProductDetailPage navigate={navigate} notify={notify} id={entityId} />
   } else if (view === "loan-disbursements") {
     content = <DisbursementsPage navigate={navigate} notify={notify} />
   } else if (view === "reports") {

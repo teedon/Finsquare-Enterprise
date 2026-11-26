@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { Button, Field, SelectField } from "@/components/ui"
 import { ArrowLeft, ArrowRight, Check, Upload } from "@/icons"
-import { documentConfigOf, isEmpty, num, slotKey, str } from "../domain/forms"
+import { documentConfigOf, isEmpty, num, rangeStrings, slotKey, str } from "../domain/forms"
 import { TextArea, money } from "@/features/loans/components/LoanUi"
 import { ResponseSections } from "./ResponseSections"
 import type { FormField, FormResponseValue, FormVersion } from "../types/form.types"
@@ -122,7 +122,20 @@ export function FormRenderer({ version, audience, members, loan, guarantorDocFie
   const pickMember = (name: string) => {
     const m = (members ?? []).find((x) => x.name === name)
     if (!m) return setValues((x) => ({ ...x, __member: "" }))
-    setValues((x) => ({ ...x, __member: m.id, "sys-fullName": m.name, "sys-phone": m.phone, "sys-email": m.email ?? "", "sys-address": m.address ?? "" }))
+    const parts = m.name.trim().split(/\s+/).filter(Boolean)
+    setValues((x) => ({
+      ...x,
+      __member: m.id,
+      // A loan form collects the name in two parts; a member form keeps one full-name field.
+      "sys-firstName": parts[0] ?? "",
+      "sys-lastName": parts.slice(1).join(" "),
+      "sys-fullName": m.name,
+      "sys-phone": m.phone,
+      "sys-email": m.email ?? "",
+      // The member record holds one address line, so it fills the street field and the legacy key.
+      "sys-street": m.address ?? "",
+      "sys-address": m.address ?? "",
+    }))
   }
 
   const missing = (s = step): string => {
@@ -175,7 +188,7 @@ export function FormRenderer({ version, audience, members, loan, guarantorDocFie
           <SelectField label="Applying as (existing member) *" value={(members ?? []).find((m) => m.id === values.__member)?.name ?? ""} options={["", ...(members ?? []).filter((m) => m.type === "Member").map((m) => m.name)]} onChange={pickMember} />
         )}
         {step.kind === "personal" && audience === "External" && <div className="span-2" style={{ color: "var(--muted)" }}>No account needed — just fill in your details.</div>}
-        {step.kind === "loan" && loan && <div className="span-2" style={{ color: "var(--muted)" }}>Product: <b>{loan.name}</b> · {money(loan.minAmount)} – {money(loan.maxAmount)} · {loan.minDuration}–{loan.maxDuration} {loan.durationUnit.toLowerCase()} · {loan.interestType === "Zero interest" ? "0%" : `${loan.interestRate}% p.a.`}</div>}
+        {step.kind === "loan" && loan && <div className="span-2 form-fact-strip">Product: <b>{loan.name}</b> · {money(loan.minAmount)} – {money(loan.maxAmount)} · {loan.minDuration}–{loan.maxDuration} {loan.durationUnit.toLowerCase()} · {loan.interestType === "Zero interest" ? "0%" : `${loan.interestRate}% p.a.`}</div>}
         {step.kind === "guarantors" ? (
           Array.from({ length: slots }, (_, g) => (
             <div key={g} className="span-2" style={{ display: "contents" }}>
@@ -187,7 +200,21 @@ export function FormRenderer({ version, audience, members, loan, guarantorDocFie
         ) : step.kind === "review" ? (
           <div className="span-2"><ResponseSections version={version} values={values} guarantorDocFields={guarantorDocFields} /></div>
         ) : (
-          step.fields.map((x) => <FieldInput key={x.id} field={x} value={values[x.id]} onChange={(v) => set(x.id, v)} />)
+          step.fields.map((x) =>
+            // The loan type owns the allowed durations, so the applicant picks from its range
+            // instead of typing a number the product would then reject.
+            loan && step.kind === "loan" && x.systemField === "duration" ? (
+              <SelectField
+                key={x.id}
+                label={`${x.label} (${loan.durationUnit.toLowerCase()})${x.required ? " *" : ""}`}
+                value={str(values[x.id])}
+                options={["", ...rangeStrings(loan.minDuration, loan.maxDuration)]}
+                onChange={(v) => set(x.id, v)}
+              />
+            ) : (
+              <FieldInput key={x.id} field={x} value={values[x.id]} onChange={(v) => set(x.id, v)} />
+            ),
+          )
         )}
       </div>
       {step.kind === "guarantors" && <p style={{ color: "var(--muted)" }}>Guarantors don’t need a FinSquare account. {loan?.requireGuarantorVerification ? "Each guarantor will be contacted and verified before approval." : ""}</p>}

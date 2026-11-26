@@ -53,7 +53,11 @@ export function FormBuilder({ version, audiences = ["External"], preview, librar
     setSteps([...steps.slice(0, at), s, ...steps.slice(at)])
     setStepId(s.id); setFieldId(null)
   }
-  const removeField = () => { if (field) { setStep({ ...step, fields: step.fields.filter((x) => x.id !== field.id) }); setFieldId(null) } }
+  const removeFieldById = (id: string) => {
+    setStep({ ...step, fields: step.fields.filter((x) => x.id !== id) })
+    if (fieldId === id) setFieldId(null)
+  }
+  const removeField = () => { if (field) removeFieldById(field.id) }
 
   return (
     <Panel flush={false}>
@@ -81,34 +85,37 @@ export function FormBuilder({ version, audiences = ["External"], preview, librar
           </div>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "210px minmax(0,1fr) 280px", gap: 16, alignItems: "start" }}>
-          <FormStepList steps={steps} selectedId={step.id} onSelect={(id) => { setStepId(id); setFieldId(null) }} onChange={setSteps} onAdd={addStep} />
-          <FormStepEditor step={step} selectedFieldId={fieldId} onSelectField={setFieldId} onChange={setStep}
-            onAddQuestion={() => addFields([qf("Untitled question", "short_text", false)])}
-            onAddFromLibrary={() => setPicker(true)}
-            onAddDocument={() => addFields([doc("New document", false)])} />
-          <div style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 12, background: "var(--surface-soft)" }}>
-            <b style={{ display: "block", marginBottom: 8 }}>{field ? "Question settings" : "Step settings"}</b>
-            {field ? (
-              <FormFieldEditor key={field.id} field={field} categories={libraryCategories(library.items)} onChange={setField} onDelete={removeField}
-                onDuplicate={() => addFields([{ ...field, id: mockId("q"), label: `${field.label} (copy)` }])}
-                onSaveToLibrary={async (category) => {
-                  await library.save({ id: mockId("ql"), label: field.label, type: field.type, category, description: field.description, required: field.required, options: field.options, createdAt: new Date().toISOString().slice(0, 10), archived: false })
-                  library.notify?.("Saved to question library")
-                }} />
-            ) : step.type === "custom" ? (
-              <div style={{ display: "grid", gap: 10 }}>
-                <Field label="Step name" value={step.title} onChange={(title) => setStep({ ...step, title })} />
-                <TextArea label="Description" value={step.description ?? ""} onChange={(description) => setStep({ ...step, description })} />
-                <div style={{ display: "flex", gap: 6 }}>
-                  <Button variant="ghost" onClick={() => { const c = cloneStep(step); setSteps([...steps.slice(0, steps.indexOf(step) + 1), c, ...steps.slice(steps.indexOf(step) + 1)]); setStepId(c.id) }}>Duplicate step</Button>
-                  <Button variant="ghost" onClick={() => { setSteps(steps.filter((s) => s.id !== step.id)); setStepId(steps[0].id) }}>Delete step</Button>
+        <div className="form-canvas">
+          <div className="form-builder-grid">
+            <FormStepList steps={steps} selectedId={step.id} onSelect={(id) => { setStepId(id); setFieldId(null) }} onChange={setSteps} onAdd={addStep} />
+            <FormStepEditor step={step} selectedFieldId={fieldId} onSelectField={setFieldId} onChange={setStep}
+              onAddQuestion={() => addFields([qf("Untitled question", "short_text", false)])}
+              onAddFromLibrary={() => setPicker(true)}
+              onAddDocument={() => addFields([doc("New document", false)])}
+              onDeleteField={removeFieldById} />
+            <div className="form-builder-settings">
+              <b>{field ? "Question settings" : "Step settings"}</b>
+              {field ? (
+                <FormFieldEditor key={field.id} field={field} categories={libraryCategories(library.items)} onChange={setField} onDelete={removeField}
+                  onDuplicate={() => addFields([{ ...field, id: mockId("q"), label: `${field.label} (copy)` }])}
+                  onSaveToLibrary={async (category) => {
+                    await library.save({ id: mockId("ql"), label: field.label, type: field.type, category, description: field.description, required: field.required, options: field.options, createdAt: new Date().toISOString().slice(0, 10), archived: false })
+                    library.notify?.("Saved to question library")
+                  }} />
+              ) : step.type === "custom" ? (
+                <div style={{ display: "grid", gap: 10 }}>
+                  <Field label="Step name" value={step.title} onChange={(title) => setStep({ ...step, title })} />
+                  <TextArea label="Description" value={step.description ?? ""} onChange={(description) => setStep({ ...step, description })} />
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <Button variant="ghost" onClick={() => { const c = cloneStep(step); setSteps([...steps.slice(0, steps.indexOf(step) + 1), c, ...steps.slice(steps.indexOf(step) + 1)]); setStepId(c.id) }}>Duplicate step</Button>
+                    <Button variant="ghost" onClick={() => { setSteps(steps.filter((s) => s.id !== step.id)); setStepId(steps[0].id) }}>Delete step</Button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div style={{ color: "var(--muted)" }}>This step is required by FinSquare and can’t be renamed, moved or removed. Select a question to change what’s required.</div>
-            )}
-            {!field && stepNote?.(step)}
+              ) : (
+                <div style={{ color: "var(--muted)" }}>This step comes with the form. You can move it and change its questions, but not its name.</div>
+              )}
+              {!field && stepNote?.(step)}
+            </div>
           </div>
         </div>
       )}

@@ -31,6 +31,16 @@ export interface MemberApplicationForm extends VersionedForm {
   createdAt: string
 }
 
+/**
+ * The form as the public link receives it. The loan application link already names the lender
+ * (`mfiName`/`mfiLogo`); when the member-application link returns the same pair the page can show
+ * which community the applicant is joining. Absent until then, so the page renders without it.
+ */
+export interface PublicMemberApplicationForm extends MemberApplicationForm {
+  mfiName?: string | null
+  mfiLogo?: string | null
+}
+
 export interface MemberApplication {
   id: string
   reference: string

@@ -66,7 +66,7 @@ export function dashboardMetrics(input: DashboardInput): Metric[] {
   return [
     {
       id: "customers",
-      label: "Customers",
+      label: "Members",
       value: input.customerCount.toLocaleString(),
       detail: input.customersAwaitingApproval
         ? `${input.customersAwaitingApproval.toLocaleString()} awaiting approval`
