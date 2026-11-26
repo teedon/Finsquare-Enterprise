@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
-import { BadgeCheck, ClipboardCheck, Download, Pencil, ReceiptText, UserPlus } from "@/icons"
+import { BadgeCheck, ClipboardCheck, Download, ReceiptText, UserPlus } from "@/icons"
 import { ShellPage } from "@/components/layout/ShellPage"
-import { Badge, Button, Tabs } from "@/components/ui"
+import { ActionMenu, Badge, Button, Tabs, type ActionMenuItem } from "@/components/ui"
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/AsyncState"
 import { ConfirmDialog } from "@/components/feedback/ConfirmDialog"
 import { DataTable, type DataTableColumn } from "@/components/data-display/DataTable"
@@ -251,6 +251,27 @@ function MemberProfileBody({
   const { summary, obligations } = memberMoney
   const loading = memberMoney.status === "loading"
 
+  // Record payment is the one action worth a permanent button: it is what an administrator opens a
+  // member for. Everything else — the occasional, and sometimes destructive, changes to the member
+  // record — sits behind one menu so the header stays two controls wide.
+  const memberActions: ActionMenuItem[] = [
+    ...(can("members.update") ? [{ label: "Edit member", onSelect: () => setEditing(true) }] : []),
+    ...(can("administrators.invite") && member.status === "Active"
+      ? [{ label: "Promote to administrator", onSelect: () => setPromoting(true) }]
+      : []),
+    ...(can("members.update")
+      ? [
+          {
+            label: member.status === "Suspended" ? "Reactivate member" : "Suspend member",
+            onSelect: () => setRequestedStatus(member.status === "Suspended" ? "Active" : "Suspended"),
+            danger: member.status !== "Suspended",
+            disabled: updatingStatus,
+          },
+        ]
+      : []),
+    { label: "Send statement", onSelect: () => notify(`Statement link sent to ${member.name}`) },
+  ]
+
   return (
     <>
       {editing && <EditMemberModal member={member} onClose={() => setEditing(false)} notify={notify} />}
@@ -310,28 +331,7 @@ function MemberProfileBody({
         }
         actions={
           <div className="header-actions">
-            {can("members.update") && (
-              <Button variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>
-                Edit member
-              </Button>
-            )}
-            {can("administrators.invite") && member.status === "Active" && (
-              <Button variant="secondary" onClick={() => setPromoting(true)}>
-                Promote to administrator
-              </Button>
-            )}
-            {can("members.update") && (
-              <Button
-                variant={member.status === "Suspended" ? "secondary" : "danger"}
-                disabled={updatingStatus}
-                onClick={() => setRequestedStatus(member.status === "Suspended" ? "Active" : "Suspended")}
-              >
-                {member.status === "Suspended" ? "Reactivate member" : "Suspend member"}
-              </Button>
-            )}
-            <Button variant="secondary" onClick={() => notify(`Statement link sent to ${member.name}`)}>
-              Send statement
-            </Button>
+            <ActionMenu label="Actions" items={memberActions} />
             <Button icon={ReceiptText} onClick={() => setPaying(true)} disabled={loading}>
               Record payment
             </Button>
