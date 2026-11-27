@@ -10,6 +10,7 @@ import { money } from "@/features/loans/components/LoanUi"
 import { round2, toISODate } from "../domain/calculations"
 import { COMMISSION_MODEL_OPTIONS, PAYMENT_METHOD_CATALOG, recipientLabel } from "../domain/contribution.rules"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
+import { useAppRoute } from "@/app/routes/useAppRoute"
 import { createContributionSchema, firstError } from "../schemas/contribution.schema"
 import { Panel } from "./ContributionUi"
 import type { ContributionCtx } from "./ContributionUi"
@@ -84,6 +85,7 @@ const initialDraft = (walletEnabled: boolean): CreateContributionInput => ({
 export function CreateContributionForm({ ctx }: { ctx: ContributionCtx }) {
   const { state } = useWorkspace()
   const organizationId = useOrganizationId()
+  const { navigate } = useAppRoute()
   const walletEnabled = state.enabledModules.includes("wallet")
   const wallet = useWallet()
   const { members } = useMembers(organizationId)
@@ -277,6 +279,7 @@ export function CreateContributionForm({ ctx }: { ctx: ContributionCtx }) {
                     <option key={group.id} value={group.id}>{group.name}</option>
                   ))}
                 </select>
+                <button type="button" className="entity-select-create" onClick={() => navigate("groups")}>+ Create group</button>
                 <span className="contribution-sub">{selectedIds.length} selected</span>
               </div>
               <ul className="create-member-list">

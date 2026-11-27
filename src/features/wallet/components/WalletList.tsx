@@ -8,6 +8,7 @@ import FundWallet from "./FundWallet"
 import TransferModal from "./TransferModal"
 import WalletCard from "./WalletCard"
 import { isMemberWallet } from "../domain/wallet.rules"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 import { Drawer, TxStatusBadge, WalletStatusBadge, balanceOf, money, type WalletCtx } from "./WalletShell"
 
 export function WalletList({ ctx }: { ctx: WalletCtx }) {
@@ -90,9 +91,7 @@ function CreateWalletModal({ ctx, onClose }: { ctx: WalletCtx; onClose: () => vo
       <div className="form-grid">
         <Field label="Wallet name" value={name} onChange={setName} />
         <SelectField label="Type" value={type} options={WALLET_TYPES} onChange={(v) => setType(v as WalletType)} />
-        {type === "Branch" && (
-          <label className="field"><span>Branch</span><select value={branchId} onChange={(e) => setBranchId(e.target.value)}>{branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
-        )}
+        {type === "Branch" && <EntitySelectField entity="branch" label="Branch" value={branchId} options={branches.map((branch) => ({ value: branch.id, label: branch.name }))} onChange={setBranchId} />}
         {simulatedOnly && <NumField label="Opening balance (₦)" value={opening} onChange={setOpening} />}
         <Field label="Description" value={description} onChange={setDescription} />
       </div>

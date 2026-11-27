@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import { Button } from "@/components/ui"
 import { SearchInput } from "@/components/data-display/ManagementPrimitives"
 import { GitBranch, Network } from "@/icons"
+import { useAppRoute } from "@/app/routes/useAppRoute"
 import type { RecipientSelection } from "../domain/recipients"
 import type { CommunicationsCtx } from "../hooks/useCommunications"
 import type { ResolvedRecipient } from "../types/message.types"
@@ -32,6 +33,7 @@ export function RecipientPicker({
 }) {
   const [reach, setReach] = useState<Reach>(selection.allMembers ? "everyone" : "people")
   const [query, setQuery] = useState("")
+  const { navigate } = useAppRoute()
 
   const visibleMembers = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -100,6 +102,8 @@ export function RecipientPicker({
       </div>
 
       {reach === "groups" && (
+        <>
+        <button type="button" className="entity-select-create" onClick={() => navigate("groups")}>+ Create group</button>
         <ul className="picker-list">
           {ctx.groups.map((group) => (
             <li key={group.id}>
@@ -119,9 +123,12 @@ export function RecipientPicker({
           ))}
           {ctx.groups.length === 0 && <li className="contribution-hint">No groups in this organization yet.</li>}
         </ul>
+        </>
       )}
 
       {reach === "branches" && (
+        <>
+        <button type="button" className="entity-select-create" onClick={() => navigate("branches")}>+ Create branch</button>
         <ul className="picker-list">
           {ctx.branches.map((branch) => (
             <li key={branch.id}>
@@ -141,6 +148,7 @@ export function RecipientPicker({
           ))}
           {ctx.branches.length === 0 && <li className="contribution-hint">No branches in this organization yet.</li>}
         </ul>
+        </>
       )}
 
       {reach === "people" && (

@@ -848,6 +848,9 @@ html[data-theme="dark"] .toast svg { color: #0f6b4d; }
 .public-payment-instructions > div { display: flex; justify-content: space-between; gap: 16px; }
 .public-payment-instructions span { color: var(--muted); font-size: 13px; }
 .public-payment-instructions b { text-align: right; overflow-wrap: anywhere; }
+.entity-select-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.entity-select-create { border: 0; padding: 0; background: none; color: var(--blue-text); font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+.entity-select-create:hover { text-decoration: underline; }
 @media (max-width: 620px) {
   .public-page { padding: 24px 16px 40px; }
   .public-page-column { gap: 18px; }

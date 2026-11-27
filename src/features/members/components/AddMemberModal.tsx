@@ -6,6 +6,7 @@ import { useGroups } from "@/features/groups/hooks/useGroups"
 import { memberSchema } from "../schemas/member.schema"
 import { useCreateMember } from "../hooks/useCreateMember"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 import type { Member } from "@/types"
 
 const GENDERS = ["Prefer not to say", "Female", "Male", "Other"]
@@ -123,8 +124,8 @@ function ManualStep({ onClose, notify, onBack }: { onClose: () => void; notify: 
           <Field label="Membership number" placeholder="Auto-generated" />
           <div><Field label="NIN (optional)" placeholder="11 digits" value={form.nin} onChange={set("nin")} />{show("nin")}</div>
           <div><Field label="BVN (optional)" placeholder="11 digits" value={form.bvn} onChange={set("bvn")} />{show("bvn")}</div>
-          <SelectField label="Branch" value={form.branchId || "Select branch"} options={["Select branch", ...activeBranches.map((branch) => branch.name)]} onChange={(name) => set("branchId")(activeBranches.find((branch) => branch.name === name)?.id ?? "")} />
-          <div><SelectField label="Primary group *" value={form.groupId || "Select group"} options={["Select group", ...activeGroups.map((group) => group.name)]} onChange={(name) => set("groupId")(activeGroups.find((group) => group.name === name)?.id ?? "")} />{show("groupId")}</div>
+          <EntitySelectField entity="branch" label="Branch" value={form.branchId} options={activeBranches.map((branch) => ({ value: branch.id, label: branch.name }))} onChange={set("branchId")} />
+          <div><EntitySelectField entity="group" label="Primary group *" value={form.groupId} options={activeGroups.map((group) => ({ value: group.id, label: group.name }))} onChange={set("groupId")} />{show("groupId")}</div>
         </div>
         <div className="info-callout compact">
           <BadgeCheck size={17} />

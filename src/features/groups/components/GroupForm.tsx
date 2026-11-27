@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Button, Field, Modal, SelectField, Toggle } from "@/components/ui"
 import { groupSchema } from "../schemas/group.schema"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 import type {
   Branch,
   CreateGroupInput,
@@ -85,9 +86,6 @@ export function GroupForm({
 
   const typeName =
     groupTypes.find((type) => type.id === values.typeId)?.name ?? ""
-  const branchName =
-    branches.find((branch) => branch.id === values.branchId)?.name ??
-    "No branch"
   const coordinatorName =
     members.find((member) => member.id === values.coordinatorMemberId)?.name ??
     "Not assigned"
@@ -146,17 +144,13 @@ export function GroupForm({
 
         <div className="form-section-title">Organization & leadership</div>
         <div className="form-grid">
-          <SelectField
+          <EntitySelectField
+            entity="branch"
             label="Branch"
-            value={branchName}
-            options={["No branch", ...branches.map((branch) => branch.name)]}
-            onChange={(name) =>
-              setValues({
-                ...values,
-                branchId:
-                  branches.find((branch) => branch.name === name)?.id ?? null,
-              })
-            }
+            value={values.branchId ?? ""}
+            placeholder="No branch"
+            options={branches.map((branch) => ({ value: branch.id, label: branch.name }))}
+            onChange={(branchId) => setValues({ ...values, branchId: branchId || null })}
           />
           <SelectField
             label="Coordinator"
