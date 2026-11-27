@@ -21,6 +21,13 @@ export default function WalletOverview({ ctx }: { ctx: WalletCtx }) {
   const main = wallets.find((w) => w.type === "Main Organization") ?? wallets[0]
   const branchWallets = wallets.filter((w) => !isMemberWallet(w) && w.id !== main?.id)
   const memberWalletCount = wallets.filter(isMemberWallet).length
+  const communityWallets = wallets.filter((w) => !isMemberWallet(w))
+  const visibleCommunityBalance = communityWallets
+    .filter((w) => ctx.canOn(w, "wallet.view_balance"))
+    .reduce((total, w) => total + w.availableBalance, 0)
+  const hasHiddenCommunityBalances = communityWallets.some((w) => !ctx.canOn(w, "wallet.view_balance"))
+  const cashWallet = data.wallets.find((w) => w.type === "Cash")
+  const cashBalance = cashWallet?.availableBalance ?? 0
   const documentsReady = REQUIRED_CORPORATE_DOCUMENTS.every((name) =>
     state.corporateDetails.documents.some((document) => document.startsWith(`${name}::https://`)),
   )
@@ -169,6 +176,17 @@ export default function WalletOverview({ ctx }: { ctx: WalletCtx }) {
             <small>Out · 30 days</small>
             <b>{compactMoney(moneyOut)}</b>
           </div>
+        </div>
+      </section>
+
+      <section className="money-facts" aria-label="Community wallet breakdown" style={{ marginTop: 12 }}>
+        <div>
+          <span>Community total balance{hasHiddenCommunityBalances ? " · partial" : ""}</span>
+          <b>{compactMoney(visibleCommunityBalance)}</b>
+        </div>
+        <div>
+          <span>Cash on hand · not spendable</span>
+          <b>{cashWallet && ctx.canOn(cashWallet, "wallet.view_balance") ? compactMoney(cashBalance) : "Hidden"}</b>
         </div>
       </section>
 

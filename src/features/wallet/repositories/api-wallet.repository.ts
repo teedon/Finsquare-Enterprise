@@ -60,6 +60,7 @@ export class ApiWalletRepository implements WalletRepository {
     try {
       const response = await apiClient.post<CashReceiptResponse>(endpoints.wallet.cashReceipts, {
         memberId: input.memberId,
+        memberName: input.memberName,
         amount: input.amount,
         note: input.note,
         items: input.items,

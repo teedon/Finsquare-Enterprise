@@ -18,6 +18,10 @@ export class ApiCommunicationRepository implements CommunicationRepository {
     await apiClient.post(endpoints.communications.commands, next)
   }
 
+  async topUpBalance(_organizationId: string, input: { amount: number; walletId: string }): Promise<{ balance: number }> {
+    return apiClient.post<{ balance: number }>(endpoints.communications.topUp, input)
+  }
+
   subscribe(): () => void {
     // A real implementation would subscribe to a websocket or poll for invalidation.
     return () => {}

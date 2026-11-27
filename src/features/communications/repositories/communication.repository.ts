@@ -8,5 +8,6 @@ import type { CommunicationDataset } from "../types/message.types"
 export interface CommunicationRepository {
   load(organizationId: string): Promise<CommunicationDataset>
   commit(organizationId: string, next: Partial<CommunicationDataset>): Promise<void>
+  topUpBalance?(organizationId: string, input: { amount: number; walletId: string }): Promise<{ balance: number }>
   subscribe(listener: () => void): () => void
 }

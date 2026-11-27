@@ -190,6 +190,7 @@ interface ActiveLoanDTO {
   overdueAmount?: number
   endDate?: string | null
   officerId?: string | null
+  repaymentAccount?: { accountNumber?: string | null; accountName?: string | null; bank?: string | null; reference?: string | null; status?: string | null }
 }
 
 interface RepaymentDTO {
@@ -437,7 +438,13 @@ function mapLoan(dto: ActiveLoanDTO): Loan {
       balance: item.balance ?? (item.isPaid ? 0 : item.amount),
       status: item.status === "PAID" ? "Paid" : item.status === "OVERDUE" ? "Overdue" : item.isPaid ? "Paid" : "Upcoming",
     })),
-    virtualAccount: { accountNumber: "", accountName: "", bank: "", reference: "", status: "Active" },
+    virtualAccount: {
+      accountNumber: dto.repaymentAccount?.accountNumber || "Not provided",
+      accountName: dto.repaymentAccount?.accountName || "Not provided",
+      bank: dto.repaymentAccount?.bank || "Not provided",
+      reference: dto.repaymentAccount?.reference || `RPY-${dto.id.slice(0, 8).toUpperCase()}`,
+      status: dto.repaymentAccount?.status === "Closed" ? "Closed" : "Active",
+    },
     officer: dto.officerId ?? "",
     documents: [],
     activity: [],
@@ -625,7 +632,7 @@ export class ApiLoanRepository implements LoanRepository {
       maxActiveLoans: product.maxActiveLoans,
       gracePeriodDays: product.graceDays,
       requiresGuarantor: product.requiresGuarantor,
-      guarantorCount: product.guarantorsRequired,
+      guarantorCount: product.requiresGuarantor ? product.guarantorsRequired : 1,
       guarantorType: product.allowExternalGuarantors ? "EXTERNAL" : "INTERNAL",
       requireAdminApproval: product.requiresApproval,
       minMembershipDurationMonths: product.eligibility.minMembershipMonths,

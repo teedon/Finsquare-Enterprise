@@ -74,5 +74,12 @@ export interface QuestionLibraryItem {
   archived: boolean
 }
 
-export interface UploadedFile { fileName: string; uploadedAt: string }
+export interface UploadedFile {
+  fileName: string
+  uploadedAt: string
+  url?: string
+  fileUrl?: string
+  downloadUrl?: string
+  mimeType?: string
+}
 export type FormResponseValue = string | number | boolean | string[] | UploadedFile
