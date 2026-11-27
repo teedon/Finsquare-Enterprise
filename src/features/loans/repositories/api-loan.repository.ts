@@ -140,6 +140,7 @@ interface LoanApplicationDTO {
     address?: string | null
     occupation?: string | null
     isVerified?: boolean
+    status?: string
     guaranteeAmount?: number | null
     verifiedBy?: string | null
     verifiedAt?: string | null
@@ -571,7 +572,7 @@ export class ApiLoanRepository implements LoanRepository {
     for (const dto of applicationsPage.applications) {
       for (const g of dto.guarantors ?? []) {
         guarantors.push({ id: g.userId, name: g.name, phone: "", relationship: "", type: "Member", memberId: g.userId, occupation: "" })
-        guarantorRequests.push({ id: g.id ?? g.userId, applicationId: dto.id, guarantor: { id: g.userId, name: g.name, phone: "", relationship: "", type: "Member", memberId: g.userId, occupation: "" }, amount: g.guaranteeAmount ?? 0, status: g.status === "verified" || g.status === "accepted" ? "Verified" : "Pending", notes: "", documents: [], updatedAt: "" })
+        guarantorRequests.push({ id: g.id ?? g.userId, applicationId: dto.id, guarantor: { id: g.userId, name: g.name, phone: "", relationship: "", type: "Member", memberId: g.userId, occupation: "" }, amount: g.guaranteeAmount ?? 0, status: (g.status?.[0]?.toUpperCase() + g.status?.slice(1)) as GuarantorStatus, notes: "", documents: [], updatedAt: "" })
       }
       for (const g of dto.externalGuarantors ?? []) {
         const guarantor: Guarantor = { id: g.id, name: g.name, phone: g.phone ?? "", relationship: g.relationship ?? "", type: "External", occupation: g.occupation ?? "" }
@@ -581,7 +582,7 @@ export class ApiLoanRepository implements LoanRepository {
           applicationId: dto.id,
           guarantor,
           amount: g.guaranteeAmount ?? 0,
-          status: g.isVerified ? "Verified" : "Pending",
+          status: (g.status ?? (g.isVerified ? "verified" : "pending")).replace(/^./, (c: string) => c.toUpperCase()) as GuarantorStatus,
           notes: g.note ?? "",
           documents: [],
           updatedAt: g.verifiedAt ?? "",
@@ -674,10 +675,9 @@ export class ApiLoanRepository implements LoanRepository {
     void _method
     void _signedForm
     if (!req.applicationId) return notAvailable("Guarantor verification")
-    const verified = status === "Verified" || status === "Accepted"
     const guarantorId = req.guarantor.type === "Member" ? req.id : req.guarantor.id
     await apiClient.post(endpoints.loans.verifyGuarantor(req.applicationId, guarantorId), {
-      isVerified: verified,
+      status: status.toLowerCase(),
       note: notes || undefined,
     })
     this.notify()
