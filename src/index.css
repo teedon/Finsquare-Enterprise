@@ -844,6 +844,10 @@ html[data-theme="dark"] .toast svg { color: #0f6b4d; }
 .public-receipt { display: flex; gap: 10px; align-items: flex-start; padding: 13px 15px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); color: var(--blue-text); }
 .public-receipt span { color: var(--ink-soft); font-size: 13px; line-height: 1.55; }
 .public-receipt b { color: var(--ink); }
+.public-payment-instructions { display: grid; gap: 10px; margin-top: 14px; padding: 15px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.public-payment-instructions > div { display: flex; justify-content: space-between; gap: 16px; }
+.public-payment-instructions span { color: var(--muted); font-size: 13px; }
+.public-payment-instructions b { text-align: right; overflow-wrap: anywhere; }
 @media (max-width: 620px) {
   .public-page { padding: 24px 16px 40px; }
   .public-page-column { gap: 18px; }
