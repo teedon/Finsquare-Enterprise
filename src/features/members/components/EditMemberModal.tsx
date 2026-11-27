@@ -5,6 +5,7 @@ import { useBranches } from "@/features/branches/hooks/useBranches"
 import { useGroups } from "@/features/groups/hooks/useGroups"
 import { useUpdateMember } from "../hooks/useUpdateMember"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 import type { Member } from "@/types"
 
 const GENDERS = ["Prefer not to say", "Female", "Male", "Other"]
@@ -105,21 +106,19 @@ export function EditMemberModal({
           <Field label="Residential address" placeholder="Street, city, state" value={form.address} onChange={set("address")} />
           <div><Field label="NIN (optional)" placeholder="11 digits" value={form.nin} onChange={set("nin")} />{show("nin")}</div>
           <div><Field label="BVN (optional)" placeholder="11 digits" value={form.bvn} onChange={set("bvn")} />{show("bvn")}</div>
-          <SelectField
+          <EntitySelectField
+            entity="branch"
             label="Branch"
-            value={currentBranchId || "Select branch"}
-            options={["Select branch", ...activeBranches.map((branch) => branch.name)]}
-            onChange={(name) =>
-              set("branchId")(activeBranches.find((branch) => branch.name === name)?.id ?? "")
-            }
+            value={currentBranchId}
+            options={activeBranches.map((branch) => ({ value: branch.id, label: branch.name }))}
+            onChange={set("branchId")}
           />
-          <SelectField
+          <EntitySelectField
+            entity="group"
             label="Primary group"
-            value={currentGroupId || "Select group"}
-            options={["Select group", ...activeGroups.map((group) => group.name)]}
-            onChange={(name) =>
-              set("groupId")(activeGroups.find((group) => group.name === name)?.id ?? "")
-            }
+            value={currentGroupId}
+            options={activeGroups.map((group) => ({ value: group.id, label: group.name }))}
+            onChange={set("groupId")}
           />
         </div>
         {error && <div className="form-error" role="alert">{error}</div>}

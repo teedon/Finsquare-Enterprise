@@ -18,6 +18,7 @@ import { formExportHtml } from "../domain/form-export"
 import { memberApplicationFormSchema } from "../schemas/member-application.schema"
 import { JoinModeBadge, LinkStateBadge } from "./MemberApplicationUi"
 import { MEMBER_JOIN_MODES } from "../types/member-application.types"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 import type { FormVersion } from "@/features/forms/types/form.types"
 import type { MemberApplicationForm, MemberJoinMode } from "../types/member-application.types"
 
@@ -232,7 +233,7 @@ function CreateFormModal({ defaultGroupId, onCreate, onClose }: { defaultGroupId
     >
       <div className="form-grid">
         <Field label="Form name *" placeholder="e.g. Member onboarding" value={name} onChange={setName} />
-        <SelectField label="New members join *" value={active.find((group) => group.id === groupId)?.name ?? ""} options={active.map((group) => group.name)} onChange={(value) => setGroupId(active.find((group) => group.name === value)?.id ?? "")} />
+        <EntitySelectField entity="group" label="New members join *" value={groupId} options={active.map((group) => ({ value: group.id, label: group.name }))} onChange={setGroupId} />
       </div>
       <p style={{ color: "var(--muted)", margin: "4px 0 0" }}>The form starts with the details FinSquare needs. Add your own questions before publishing.</p>
     </ActionModal>
@@ -263,11 +264,12 @@ function PublishModal({ groups, defaultJoinMode, defaultGroupId, onClose, onPubl
       </div>
       <div className="create-question">
         <div className="create-q">Where do new members go?</div>
-        <SelectField
+        <EntitySelectField
+          entity="group"
           label="Group"
-          value={groups.find((group) => group.id === groupId)?.name ?? ""}
-          options={groups.map((group) => group.name)}
-          onChange={(name) => setGroupId(groups.find((group) => group.name === name)?.id ?? "")}
+          value={groupId}
+          options={groups.map((group) => ({ value: group.id, label: group.name }))}
+          onChange={setGroupId}
         />
         <p style={{ color: "var(--muted)", margin: "6px 0 0" }}>Approved and open-joining members are added to this group.</p>
       </div>

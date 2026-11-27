@@ -48,17 +48,30 @@ export default function PublicContributionPage({ slug, memberId }: { slug: strin
   }
 
   if (receipt) {
+    const instructions = receipt.paymentInstructions
     return page(
-      "Contribution recorded",
-      `Your reference is ${receipt.reference} — ${money(receipt.amount)} towards ${receipt.contributionName}.`,
+      instructions ? "Complete your contribution payment" : "Contribution recorded",
+      instructions
+        ? `Transfer ${money(receipt.amount)} to the account below. Your contribution will be confirmed when the payment settles.`
+        : `Your reference is ${receipt.reference} — ${money(receipt.amount)} towards ${receipt.contributionName}.`,
       <>
         <div className="public-receipt">
           <HandCoins size={22} />
           <span>
-            Funds are held in <b>{receipt.recipientLabel}</b>. The organization confirms the payment once it settles.
+            {instructions
+              ? <>Funds will be held in <b>{receipt.recipientLabel || community?.name || contribution.name}</b> after your transfer settles.</>
+              : <>Funds are held in <b>{receipt.recipientLabel || community?.name || contribution.name}</b>. The organization confirms the payment once it settles.</>}
           </span>
         </div>
-        <p className="contribution-hint">Keep the reference above for your records.</p>
+        {instructions && <div className="public-payment-instructions">
+          <div><span>Bank</span><b>{instructions.bankName}</b></div>
+          <div><span>Account name</span><b>{instructions.accountName}</b></div>
+          <div><span>Account number</span><b>{instructions.accountNumber}</b></div>
+          <div><span>Amount</span><b>{money(receipt.amount)}</b></div>
+          <div><span>Payment reference</span><b>{receipt.reference}</b></div>
+          <div><span>Account expires</span><b>{new Date(instructions.expiresAt).toLocaleString("en-NG")}</b></div>
+        </div>}
+        <p className="contribution-hint">{instructions ? "Use the exact amount and account above. Keep the reference for your records." : "Keep the reference above for your records."}</p>
       </>,
     )
   }

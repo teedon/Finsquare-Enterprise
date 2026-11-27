@@ -3,6 +3,7 @@ import { Button, Field, Modal, SelectField } from "@/components/ui"
 import { useBranches } from "@/features/branches/hooks/useBranches"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
 import { administratorInvitationSchema } from "../schemas/administrator.schema"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 import type { InviteAdministratorInput, Role } from "@/types"
 
 export function InviteAdministratorForm({
@@ -114,10 +115,11 @@ export function InviteAdministratorForm({
             }
           />
           {scopeType === "branch" && (
-            <SelectField
+            <EntitySelectField
+              entity="branch"
               label="Branch"
               value={branchName}
-              options={branches.map((branch) => branch.name)}
+              options={branches.map((branch) => ({ value: branch.name, label: branch.name }))}
               onChange={setBranchName}
             />
           )}

@@ -130,6 +130,7 @@ export const endpoints = {
   communications: {
     workspace: "/enterprise/communications",
     commands: "/enterprise/communications",
+    topUp: "/enterprise/communications/top-up",
   },
   wallet: {
     workspace: "/enterprise/wallet",

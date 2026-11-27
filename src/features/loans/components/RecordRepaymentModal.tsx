@@ -3,6 +3,7 @@ import { Field, SelectField } from "@/components/ui"
 import { allocateRepayment, todayISO } from "../domain/calculations"
 import { ActionModal, NumField, TextArea, money, type LoanCtx } from "./LoanUi"
 import type { RepaymentMethod } from "../types/loan.types"
+import { cashService } from "@/features/wallet/services/cash.service"
 
 export function RecordRepaymentModal({ ctx, loanId, onClose }: { ctx: LoanCtx; loanId?: string; onClose: () => void }) {
   const open = ctx.data.loans.filter((l) => l.outstanding > 0 && l.status !== "Written Off")
@@ -22,6 +23,15 @@ export function RecordRepaymentModal({ ctx, loanId, onClose }: { ctx: LoanCtx; l
     <ActionModal title="Record repayment" onClose={onClose} submitLabel="Record repayment" disabled={!loan || !(amount > 0) || !!over || !pinValid}
       onSubmit={async () => {
         await ctx.service.recordRepayment({ loanId: id, amount, method, date, reference, note, pin: pin.trim() })
+        if (method === "Cash" && loan) {
+          await cashService.receive(ctx.data.account.organizationId, {
+            memberId: loan.borrower.id,
+            memberName: loan.borrower.name,
+            amount,
+            items: [{ kind: "Loan", id: loan.id, label: `Loan repayment ${loan.reference}`, amount }],
+            note: note || undefined,
+          }, ctx.actor, ctx.mode)
+        }
         ctx.notify(`${money(amount)} allocated to ${loan?.reference}`)
       }}>
       <div className="form-grid">

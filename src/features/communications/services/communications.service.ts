@@ -180,8 +180,13 @@ export class CommunicationService {
     const wallets = await walletServiceFor(organizationId).load()
     const wallet = wallets.wallets.find((row) => row.id === input.walletId)
     if (!wallet) throw new CommunicationError("Choose a wallet to top up from.")
+    if (wallet.type === "Cash") throw new CommunicationError("Cash on hand cannot fund the SMS balance. Deposit it to the community wallet first.")
     if (wallet.organizationId !== organizationId) {
       throw new CommunicationError("That wallet belongs to another organization.")
+    }
+
+    if (this.repo.topUpBalance) {
+      return this.repo.topUpBalance(organizationId, { amount, walletId: wallet.id })
     }
 
     const reference = `SMS-${Date.now().toString().slice(-5)}`

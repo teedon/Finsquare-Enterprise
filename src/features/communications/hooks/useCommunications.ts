@@ -95,10 +95,12 @@ export function useCommunications() {
     groups: groups.groups,
     branches: branches.branches,
     /** Only real wallets can fund the balance — a member wallet is not a treasury. */
-    fundingWallets: wallet.data ? organizationWallets(wallets) : [],
+    fundingWallets: wallet.data ? organizationWallets(wallets).filter((candidate) => candidate.type !== "Cash") : [],
     canSpendFrom: (walletId: string) => {
       const row = wallets.find((candidate) => candidate.id === walletId)
-      return row ? wallet.canOn(row, "wallet.withdraw") : false
+      return row && row.type !== "Cash"
+        ? (row.type === "Main Organization" && can("communication.manage_balance")) || wallet.canOn(row, "wallet.withdraw")
+        : false
     },
     sendMessage,
     topUpBalance,

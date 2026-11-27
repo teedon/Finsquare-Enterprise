@@ -6,6 +6,7 @@ import { useParticipantRoster } from "../hooks/useParticipantRoster"
 import { createDuesPlanSchema, firstError } from "../schemas/dues.schema"
 import { toISODate } from "../domain/schedule"
 import { DUES_FREQUENCIES } from "../types/dues.types"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 
 import type { DuesCtx } from "./DuesUi"
 import type {
@@ -219,20 +220,7 @@ export function CreateDuesForm({ ctx }: { ctx: DuesCtx }) {
 
           {selection.scope === "Group" && (
             <>
-              <label className="field">
-                <span>Group</span>
-                <select
-                  value={selection.groupId ?? ""}
-                  onChange={(event) => patchSelection({ groupId: event.target.value || undefined })}
-                >
-                  <option value="">Choose a group…</option>
-                  {rosterResource.groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <EntitySelectField entity="group" label="Group" value={selection.groupId ?? ""} placeholder="Choose a group…" options={rosterResource.groups.map((group) => ({ value: group.id, label: group.name }))} onChange={(groupId) => patchSelection({ groupId: groupId || undefined })} />
               {rosterResource.groupName && (
                 <p className="contribution-hint">
                   {rosterResource.groupName} — {roster.length} active {roster.length === 1 ? "member" : "members"}.
@@ -243,24 +231,7 @@ export function CreateDuesForm({ ctx }: { ctx: DuesCtx }) {
 
           {selection.scope === "Branch" && (
             <>
-              <label className="field">
-                <span>Branch</span>
-                <select
-                  value={selection.branchId ?? ""}
-                  onChange={(event) =>
-                    patchSelection({
-                      branchId: event.target.value || undefined,
-                    })
-                  }
-                >
-                  <option value="">Choose a branch…</option>
-                  {rosterResource.branches.map((branch) => (
-                    <option key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <EntitySelectField entity="branch" label="Branch" value={selection.branchId ?? ""} placeholder="Choose a branch…" options={rosterResource.branches.map((branch) => ({ value: branch.id, label: branch.name }))} onChange={(branchId) => patchSelection({ branchId: branchId || undefined })} />
               {rosterResource.branchName && (
                 <p className="contribution-hint">
                   {rosterResource.branchName} — {roster.length} {roster.length === 1 ? "member" : "members"}.

@@ -5,6 +5,7 @@ import { Button, ExportButtons, PagedTable, Panel } from "../components/DuesUi"
 import { useDues } from "../hooks/useDues"
 import { useParticipantRoster } from "../hooks/useParticipantRoster"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 import {
   collectionHistory,
   manualPaymentRows,
@@ -231,31 +232,8 @@ function ReportsBody({
               ))}
             </select>
           </label>
-          <label className="field">
-            <span>Group</span>
-            <select value={groupFilter} onChange={(event) => setGroupFilter(event.target.value)}>
-              <option value="">Every group</option>
-              {groupScope.groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span>Branch</span>
-            <select
-              value={filters.branchId ?? ""}
-              onChange={(event) => patch({ branchId: event.target.value || undefined })}
-            >
-              <option value="">Every branch</option>
-              {branches.map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <EntitySelectField entity="group" label="Group" value={groupFilter} placeholder="Every group" options={groupScope.groups.map((group) => ({ value: group.id, label: group.name }))} onChange={setGroupFilter} />
+          <EntitySelectField entity="branch" label="Branch" value={filters.branchId ?? ""} placeholder="Every branch" options={branches.map(([id, name]) => ({ value: id, label: name }))} onChange={(branchId) => patch({ branchId: branchId || undefined })} />
           <label className="field">
             <span>Status</span>
             <select

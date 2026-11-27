@@ -42,6 +42,7 @@ export interface MemberPaymentInput {
   method: MemberPaymentMethod
   /** Cash only: what the member handed over. Defaults to the amount applied; the rest is change. */
   cashReceived?: number
+  pin?: string
   note?: string
 }
 
@@ -163,6 +164,7 @@ export class MemberPaymentsService {
           date,
           reference: "",
           note: input.note,
+          pin: input.pin,
         })
         settledItems.push({
           kind: "Loan",

@@ -396,4 +396,11 @@ export interface PublicContributionReceipt {
   contributorName: string
   amount: number
   recipientLabel: string
+  status?: "Awaiting payment" | "Recorded"
+  paymentInstructions?: {
+    accountNumber: string
+    accountName: string
+    bankName: string
+    expiresAt: string
+  }
 }

@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { ShieldCheck } from "@/icons"
 import { useBranches } from "@/features/branches/hooks/useBranches"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 import { ErrorState, LoadingState } from "@/components/feedback/AsyncState"
 import { ConfirmDialog } from "@/components/feedback/ConfirmDialog"
 import { Button, SectionHeader, SelectField } from "@/components/ui"
@@ -144,10 +145,11 @@ export function AdministratorDetailsPage({
                 }
               />
               {scopeType === "branch" && (
-                <SelectField
+                <EntitySelectField
+                  entity="branch"
                   label="Branch"
                   value={branchName}
-                  options={branches.map((branch) => branch.name)}
+                  options={branches.map((branch) => ({ value: branch.name, label: branch.name }))}
                   onChange={setBranchName}
                 />
               )}

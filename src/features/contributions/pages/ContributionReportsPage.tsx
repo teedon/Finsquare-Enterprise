@@ -5,6 +5,7 @@ import { useAuthorization } from "@/features/administrators/hooks/useAuthorizati
 import { Tabs } from "@/components/ui"
 import { SearchInput } from "@/components/data-display/ManagementPrimitives"
 import { useOrganizationId } from "@/hooks/useOrganizationId"
+import { EntitySelectField } from "@/features/organization/components/EntitySelectField"
 import {
   collectionHistory,
   commissionReport,
@@ -132,13 +133,7 @@ function ReportsBody({ data, can, today, embedded }: { data: ContributionDataset
 
         <Disclosure label="More filters">
           <div className="contribution-filters contribution-filters-wide">
-            <label className="field">
-              <span>Group</span>
-              <select value={filters.groupId ?? ""} onChange={(event) => patch({ groupId: event.target.value })}>
-                <option value="">All groups</option>
-                {groups.map((group) => <option key={group} value={group}>{data.contributions.find((c) => c.groupId === group)?.groupName ?? group}</option>)}
-              </select>
-            </label>
+            <EntitySelectField entity="group" label="Group" value={filters.groupId ?? ""} placeholder="All groups" options={groups.map((group) => ({ value: group, label: data.contributions.find((c) => c.groupId === group)?.groupName ?? group }))} onChange={(groupId) => patch({ groupId })} />
             <label className="field">
               <span>Recipient</span>
               <select value={filters.recipientKind ?? "All"} onChange={(event) => patch({ recipientKind: event.target.value as ContributionReportFilters["recipientKind"] })}>
