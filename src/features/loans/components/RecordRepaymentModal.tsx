@@ -24,7 +24,7 @@ export function RecordRepaymentModal({ ctx, loanId, onClose }: { ctx: LoanCtx; l
       onSubmit={async () => {
         await ctx.service.recordRepayment({ loanId: id, amount, method, date, reference, note, pin: pin.trim() })
         if (method === "Cash" && loan) {
-          await cashService.receive(ctx.data.account.organizationId, {
+          await cashService.receive(ctx.organizationId, {
             memberId: loan.borrower.id,
             memberName: loan.borrower.name,
             amount,
