@@ -43,7 +43,7 @@ function Inner({ ctx }: { ctx: WalletCtx }) {
       </Panel>
       {ids && loans && (
         <DisbursementModal apps={loans.applications.filter((a) => ids.includes(a.id))} onClose={() => setIds(null)}
-          ctx={{ navigate: ctx.navigate, notify: ctx.notify, data: loans, service: loansService, can }} />
+          ctx={{ navigate: ctx.navigate, notify: ctx.notify, data: loans, service: loansService, can, organizationId: ctx.organizationId, actor: ctx.actor, mode: ctx.mode }} />
       )}
     </>
   )

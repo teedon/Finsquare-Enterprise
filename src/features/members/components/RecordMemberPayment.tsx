@@ -99,7 +99,7 @@ export function RecordMemberPayment({
       : selected
         ? [{ obligation: selected, amount: round2(amount) }]
         : []
-    const includesLoan = items.some(({ obligation }) => obligation.kind === "Loan")
+    const includesLoan = items.some(({ obligation }) => obligation.kind === "Loan repayment")
     if (includesLoan && !/^\d{4}$/.test(pin.trim())) fail("Enter your 4-digit wallet PIN to record a loan repayment.")
     try {
       const result = await pay({
@@ -238,7 +238,7 @@ export function RecordMemberPayment({
             </>
           )}
 
-          {(settlingAll ? unsettled : selected ? [selected] : []).some((item) => item.kind === "Loan") && (
+          {(settlingAll ? unsettled : selected ? [selected] : []).some((item) => item.kind === "Loan repayment") && (
             <label className="field">
               <span>Wallet PIN</span>
               <input type="password" inputMode="numeric" autoComplete="current-password" maxLength={4} value={pin}

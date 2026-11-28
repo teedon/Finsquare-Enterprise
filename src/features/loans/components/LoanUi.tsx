@@ -1,10 +1,14 @@
 import { useState, type CSSProperties, type ReactNode } from "react"
 import { useAuthorization } from "@/features/administrators/hooks/useAuthorization"
+import { useWorkspace } from "@/app/providers/WorkspaceProvider"
+import { moneyMovementMode } from "@/lib/permissions/capabilities"
 import { ErrorState, LoadingState } from "@/components/feedback/AsyncState"
 import { DataTable, type DataTableColumn } from "@/components/data-display/DataTable"
 import { Badge, Button, Modal, Tabs as UiTabs } from "@/components/ui"
 import { Download } from "@/icons"
 import type { Permission, View } from "@/types"
+import type { Actor } from "@/features/wallet/types/wallet.types"
+import type { Mode } from "@/features/wallet/services/wallet.service"
 import { useLoans } from "../hooks/useLoans"
 import type { LoansService } from "../services/loans.service"
 import type {
@@ -26,6 +30,9 @@ export interface LoanCtx extends LoanPageProps {
   data: LoanDataset
   service: LoansService
   can: (permission: Permission) => boolean
+  organizationId: string
+  actor: Actor
+  mode: Mode
 }
 
 export const money = (n: number) =>
@@ -62,10 +69,19 @@ export function LoanPage({
   ...props
 }: LoanPageProps & { children: (ctx: LoanCtx) => ReactNode; bare?: boolean; width?: "narrow" }) {
   const { data, error, retry, service } = useLoans()
-  const { can } = useAuthorization()
+  const { can, administrator } = useAuthorization()
+  const { state } = useWorkspace()
   if (error) return <ErrorState message={error} retry={retry} />
   if (!data) return <LoadingState label="Loading loans…" />
-  const body = children({ ...props, data, service, can })
+  const body = children({
+    ...props,
+    data,
+    service,
+    can,
+    organizationId: state.activeCommunityId,
+    actor: { id: administrator.id, name: administrator.name },
+    mode: moneyMovementMode(state.environment),
+  })
   if (bare) return <>{body}</>
   return <div className={width === "narrow" ? "page page-narrow" : "page"}>{body}</div>
 }
